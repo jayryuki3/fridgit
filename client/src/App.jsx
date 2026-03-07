@@ -4,7 +4,6 @@ import { Toaster } from 'react-hot-toast';
 import { useState, useEffect } from 'react';
 import api from './services/api.js';
 
-// Pages
 import Setup from './pages/Setup.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
