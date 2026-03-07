@@ -2,91 +2,89 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
 import Layout from '../components/Layout.jsx';
-import { Plus, AlertTriangle, Package, Clock } from 'lucide-react';
+import { Plus, AlertTriangle, ShoppingCart, UtensilsCrossed, Refrigerator } from 'lucide-react';
 import api from '../services/api.js';
-
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 17) return 'Good afternoon';
-  return 'Good evening';
-}
 
 export default function HomePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [items, setItems] = useState([]);
-  const [expiring, setExpiring] = useState([]);
+  const [stats, setStats] = useState({ total: 0, expiring: 0, shopping: 0 });
+  const [expiringItems, setExpiringItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
-      api.get('/items').then(r => r.data),
-      api.get('/items/expiring?days=7').then(r => r.data),
-    ]).then(([allItems, expiringItems]) => {
-      setItems(allItems);
-      setExpiring(expiringItems);
+      api.get('/items'),
+      api.get('/items/expiring?days=3'),
+      api.get('/shopping-list'),
+    ]).then(([items, expiring, shopping]) => {
+      setStats({
+        total: items.data.length,
+        expiring: expiring.data.length,
+        shopping: shopping.data.filter(i => !i.purchased).length,
+      });
+      setExpiringItems(expiring.data.slice(0, 3));
     }).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
-  const getDaysUntilExpiry = (date) => {
-    if (!date) return null;
-    const diff = Math.ceil((new Date(date) - new Date()) / (1000 * 60 * 60 * 24));
-    return diff;
-  };
-
-  const getExpiryColor = (days) => {
-    if (days <= 1) return 'bg-fridgit-dangerPale text-fridgit-danger';
-    if (days <= 3) return 'bg-fridgit-accentPale text-fridgit-accent';
-    return 'bg-fridgit-primaryPale text-fridgit-primary';
+  const greeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
   };
 
   return (
     <Layout>
       <div className="slide-up">
         <div className="mb-6">
-          <h1 className="text-2xl font-serif text-fridgit-text">{getGreeting()}, {user?.name?.split(' ')[0] || 'there'}!</h1>
-          <p className="text-fridgit-textMuted text-sm mt-1">Here's what's in your fridge</p>
+          <h1 className="text-2xl font-serif text-fridgit-text">{greeting()}, {user?.name?.split(' ')[0] || 'there'}</h1>
+          <p className="text-fridgit-textMuted text-sm mt-1">Here's what's in your kitchen</p>
         </div>
 
-        {/* Quick Stats */}
+        {/* Quick stats */}
         <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="bg-white rounded-xl p-3 border border-fridgit-border text-center">
-            <Package size={20} className="text-fridgit-primary mx-auto mb-1" />
-            <div className="text-xl font-bold text-fridgit-text">{items.length}</div>
+          <button onClick={() => navigate('/fridge')} className="bg-white rounded-xl border border-fridgit-border p-3 text-center hover:shadow-md transition-shadow">
+            <Refrigerator size={24} className="text-fridgit-primary mx-auto mb-1" />
+            <div className="text-xl font-bold text-fridgit-text">{loading ? '-' : stats.total}</div>
             <div className="text-xs text-fridgit-textMuted">Items</div>
-          </div>
-          <div className="bg-white rounded-xl p-3 border border-fridgit-border text-center">
-            <AlertTriangle size={20} className="text-fridgit-accent mx-auto mb-1" />
-            <div className="text-xl font-bold text-fridgit-text">{expiring.length}</div>
+          </button>
+          <button onClick={() => navigate('/fridge')} className="bg-white rounded-xl border border-fridgit-border p-3 text-center hover:shadow-md transition-shadow">
+            <AlertTriangle size={24} className="text-fridgit-accent mx-auto mb-1" />
+            <div className="text-xl font-bold text-fridgit-text">{loading ? '-' : stats.expiring}</div>
             <div className="text-xs text-fridgit-textMuted">Expiring</div>
-          </div>
-          <div className="bg-white rounded-xl p-3 border border-fridgit-border text-center">
-            <Clock size={20} className="text-fridgit-textMuted mx-auto mb-1" />
-            <div className="text-xl font-bold text-fridgit-text">{items.filter(i => !i.expiry_date).length}</div>
-            <div className="text-xs text-fridgit-textMuted">No Date</div>
-          </div>
+          </button>
+          <button onClick={() => navigate('/shopping')} className="bg-white rounded-xl border border-fridgit-border p-3 text-center hover:shadow-md transition-shadow">
+            <ShoppingCart size={24} className="text-fridgit-primary mx-auto mb-1" />
+            <div className="text-xl font-bold text-fridgit-text">{loading ? '-' : stats.shopping}</div>
+            <div className="text-xs text-fridgit-textMuted">To Buy</div>
+          </button>
         </div>
 
-        {/* Expiring Soon */}
-        {expiring.length > 0 && (
+        {/* Add item button */}
+        <button onClick={() => navigate('/new-item')}
+          className="w-full mb-6 py-3 rounded-xl bg-fridgit-primary text-white font-semibold hover:bg-fridgit-primaryLight transition-colors flex items-center justify-center gap-2">
+          <Plus size={20} /> Add Item
+        </button>
+
+        {/* Expiring soon */}
+        {expiringItems.length > 0 && (
           <div className="mb-6">
-            <h2 className="text-lg font-serif text-fridgit-text mb-3 flex items-center gap-2">
-              <AlertTriangle size={18} className="text-fridgit-accent" />
-              Needs Attention
-            </h2>
+            <h2 className="text-sm font-semibold text-fridgit-textMid mb-2">Expiring Soon</h2>
             <div className="space-y-2">
-              {expiring.slice(0, 5).map(item => {
-                const days = getDaysUntilExpiry(item.expiry_date);
+              {expiringItems.map(item => {
+                const days = Math.ceil((new Date(item.expiry_date) - new Date()) / (1000*60*60*24));
                 return (
-                  <div key={item.id} className="bg-white rounded-xl p-3 border border-fridgit-border flex items-center gap-3">
-                    <span className="text-2xl">{item.emoji || '\u{1F4E6}'}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-fridgit-text truncate">{item.name}</div>
-                      <div className="text-xs text-fridgit-textMuted">Qty: {item.quantity}</div>
+                  <div key={item.id} className="bg-white rounded-xl border border-fridgit-border p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{item.emoji || '📦'}</span>
+                      <div>
+                        <div className="text-sm font-medium text-fridgit-text">{item.name}</div>
+                        <div className="text-xs text-fridgit-textMuted">Qty: {item.quantity}</div>
+                      </div>
                     </div>
-                    <span className={`text-xs font-semibold px-2 py-1 rounded-lg ${getExpiryColor(days)}`}>
-                      {days <= 0 ? 'Expired' : days === 1 ? '1 day' : `${days} days`}
+                    <span className={`text-xs font-semibold px-2 py-1 rounded-lg ${days <= 0 ? 'bg-fridgit-dangerPale text-fridgit-danger' : days <= 1 ? 'bg-fridgit-accentPale text-fridgit-accent' : 'bg-fridgit-primaryPale text-fridgit-primary'}`}>
+                      {days <= 0 ? 'Expired' : days === 1 ? 'Tomorrow' : `${days} days`}
                     </span>
                   </div>
                 );
@@ -95,23 +93,17 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Empty State */}
-        {!loading && items.length === 0 && (
-          <div className="bg-white rounded-2xl border border-fridgit-border p-8 text-center">
-            <Package size={48} className="text-fridgit-textMuted mx-auto mb-3" />
-            <h3 className="text-lg font-serif text-fridgit-text mb-1">Your fridge is empty</h3>
-            <p className="text-sm text-fridgit-textMuted mb-4">Add your first item to get started</p>
-            <button onClick={() => navigate('/new-item')} className="bg-fridgit-primary text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-fridgit-primaryLight transition-colors">
-              Add Item
-            </button>
-          </div>
-        )}
-
-        {/* FAB Button */}
-        <div className="fixed bottom-24 right-4 flex flex-col gap-3 max-w-lg">
-          <button onClick={() => navigate('/new-item')}
-            className="w-14 h-14 rounded-full bg-fridgit-primary text-white shadow-lg hover:bg-fridgit-primaryLight transition-colors flex items-center justify-center">
-            <Plus size={28} />
+        {/* Quick actions */}
+        <div className="grid grid-cols-2 gap-3">
+          <button onClick={() => navigate('/recipes')} className="bg-white rounded-xl border border-fridgit-border p-4 text-left hover:shadow-md transition-shadow">
+            <UtensilsCrossed size={20} className="text-fridgit-accent mb-2" />
+            <div className="text-sm font-medium text-fridgit-text">Find Recipes</div>
+            <div className="text-xs text-fridgit-textMuted">From your ingredients</div>
+          </button>
+          <button onClick={() => navigate('/shopping')} className="bg-white rounded-xl border border-fridgit-border p-4 text-left hover:shadow-md transition-shadow">
+            <ShoppingCart size={20} className="text-fridgit-primary mb-2" />
+            <div className="text-sm font-medium text-fridgit-text">Shopping List</div>
+            <div className="text-xs text-fridgit-textMuted">{stats.shopping} items to buy</div>
           </button>
         </div>
       </div>
