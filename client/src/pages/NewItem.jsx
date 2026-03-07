@@ -6,22 +6,22 @@ import api from '../services/api.js';
 import toast from 'react-hot-toast';
 
 const categoryOptions = [
-  { key: 'dairy', emoji: '🥛', label: 'Dairy' },
-  { key: 'meat', emoji: '🍗', label: 'Meat' },
-  { key: 'vegetables', emoji: '🥬', label: 'Veggies' },
-  { key: 'fruits', emoji: '🍎', label: 'Fruits' },
-  { key: 'beverages', emoji: '🥤', label: 'Drinks' },
-  { key: 'condiments', emoji: '🫙', label: 'Sauces' },
-  { key: 'grains', emoji: '🌾', label: 'Grains' },
-  { key: 'snacks', emoji: '🍪', label: 'Snacks' },
-  { key: 'other', emoji: '📦', label: 'Other' },
+  { key: 'dairy', emoji: '\u{1F95B}', label: 'Dairy' },
+  { key: 'meat', emoji: '\u{1F357}', label: 'Meat' },
+  { key: 'vegetables', emoji: '\u{1F96C}', label: 'Veggies' },
+  { key: 'fruits', emoji: '\u{1F34E}', label: 'Fruits' },
+  { key: 'beverages', emoji: '\u{1F964}', label: 'Drinks' },
+  { key: 'condiments', emoji: '\u{1FAD9}', label: 'Sauces' },
+  { key: 'grains', emoji: '\u{1F33E}', label: 'Grains' },
+  { key: 'snacks', emoji: '\u{1F36A}', label: 'Snacks' },
+  { key: 'other', emoji: '\u{1F4E6}', label: 'Other' },
 ];
 
 const locationOptions = ['fridge', 'freezer', 'pantry', 'counter'];
 
 export default function NewItem() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState('form');
+  const [mode, setMode] = useState('form'); // 'form' | 'scan' | 'search'
   const [scanning, setScanning] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -31,11 +31,12 @@ export default function NewItem() {
   const [form, setForm] = useState({
     name: '', barcode: '', category: 'other', quantity: 1, unit: 'count',
     location: 'fridge', expiry_date: '', calories: '', protein: '', carbs: '', fat: '',
-    emoji: '📦', color: '#F5F5F5', shared: false,
+    emoji: '\u{1F4E6}', color: '#F5F5F5', shared: false,
   });
 
   const updateForm = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
 
+  // Barcode scanning
   const startScan = async () => {
     setMode('scan');
     setScanning(true);
@@ -163,7 +164,7 @@ export default function NewItem() {
             {searchResults.map((p, i) => (
               <button key={i} onClick={() => selectProduct(p)}
                 className="w-full bg-white rounded-xl border border-fridgit-border p-3 flex items-center gap-3 text-left hover:bg-fridgit-surfaceAlt transition-colors">
-                <span className="text-2xl">{p.emoji || '📦'}</span>
+                <span className="text-2xl">{p.emoji || '\u{1F4E6}'}</span>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-fridgit-text text-sm truncate">{p.name}</div>
                   <div className="text-xs text-fridgit-textMuted">{p.category} {p.calories ? `- ${p.calories} kcal` : ''}</div>
@@ -187,6 +188,7 @@ export default function NewItem() {
           <h1 className="text-xl font-serif text-fridgit-text">Add Item</h1>
         </div>
 
+        {/* Scan / Search buttons */}
         <div className="flex gap-3 mb-4">
           <button onClick={startScan} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-fridgit-primary text-fridgit-primary font-medium hover:bg-fridgit-primaryPale transition-colors">
             <Camera size={20} /> Scan Barcode
@@ -204,6 +206,7 @@ export default function NewItem() {
                 className="w-full px-3 py-2.5 rounded-xl border border-fridgit-border bg-fridgit-bg text-fridgit-text focus:border-fridgit-primary transition" placeholder="e.g. Whole Milk" />
             </div>
 
+            {/* Category chips */}
             <div>
               <label className="block text-sm font-medium text-fridgit-textMid mb-2">Category</label>
               <div className="flex flex-wrap gap-2">
@@ -218,6 +221,7 @@ export default function NewItem() {
               </div>
             </div>
 
+            {/* Quantity & Unit */}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-fridgit-textMid mb-1">Quantity</label>
@@ -238,12 +242,14 @@ export default function NewItem() {
               </div>
             </div>
 
+            {/* Expiry Date */}
             <div>
               <label className="block text-sm font-medium text-fridgit-textMid mb-1">Expiry Date</label>
               <input type="date" value={form.expiry_date} onChange={e => updateForm('expiry_date', e.target.value)}
                 className="w-full px-3 py-2.5 rounded-xl border border-fridgit-border bg-fridgit-bg text-fridgit-text focus:border-fridgit-primary transition" />
             </div>
 
+            {/* Shared toggle */}
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-fridgit-textMid">Shared with household</span>
               <button type="button" onClick={() => updateForm('shared', !form.shared)}
@@ -253,6 +259,7 @@ export default function NewItem() {
             </div>
           </div>
 
+          {/* Nutrition info (if available from scan) */}
           {(form.calories || form.protein || form.carbs || form.fat) && (
             <div className="bg-white rounded-xl border border-fridgit-border p-4">
               <h3 className="text-sm font-semibold text-fridgit-textMid mb-2">Nutrition (per 100g)</h3>
