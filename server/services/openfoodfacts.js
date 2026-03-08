@@ -24,23 +24,52 @@ export async function searchProducts(query, limit = 10) {
   }
 }
 
-function round1(val) {
+function round2(val) {
   const n = parseFloat(val);
-  if (isNaN(n)) return '0';
-  return String(Math.round(n * 10) / 10);
+  if (isNaN(n)) return 0;
+  return Math.round(n * 100) / 100;
+}
+
+function firstNumeric(...values) {
+  for (const value of values) {
+    const n = parseFloat(value);
+    if (!Number.isNaN(n)) return round2(n);
+  }
+  return null;
+}
+
+function inferCategory(categories = [], text = '') {
+  const haystack = [...categories, text]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  if (!haystack) return 'other';
+  if (/(milk|cheese|yogurt|yoghurt|butter|cream|dairy)/.test(haystack)) return 'dairy';
+  if (/(beef|pork|chicken|turkey|ham|sausage|bacon|meat|charcuterie|salami)/.test(haystack)) return 'meat';
+  if (/(fish|salmon|tuna|shrimp|prawn|crab|seafood|mussel|sardine)/.test(haystack)) return 'seafood';
+  if (/(vegetable|broccoli|spinach|lettuce|salad|carrot|pepper|cucumber|onion|tomato)/.test(haystack)) return 'vegetables';
+  if (/(fruit|apple|banana|berry|berries|orange|grape|mango|pineapple|pear|peach)/.test(haystack)) return 'fruits';
+  if (/(drink|beverage|juice|soda|sparkling|water|coffee|tea)/.test(haystack)) return 'beverages';
+  if (/(sauce|condiment|ketchup|mustard|mayo|mayonnaise|dressing|vinaigrette|hot sauce|salsa|jam)/.test(haystack)) return 'condiments';
+  if (/(bread|rice|pasta|cereal|grain|oat|quinoa|flour|tortilla|noodle)/.test(haystack)) return 'grains';
+  if (/(cookie|cracker|chips|popcorn|snack|candy|chocolate|bar)/.test(haystack)) return 'snacks';
+  return 'other';
 }
 
 export function normalizeProduct(product) {
   const nutriments = product.nutriments || {};
   const categories = product.categories_tags || [];
+  const categoryText = product.categories || '';
+  const category = inferCategory(categories, categoryText);
 
-  let category = 'other';
-  if (categories.some(c => c.includes('dairy'))) category = 'dairy';
-  else if (categories.some(c => c.includes('meat'))) category = 'meat';
-  else if (categories.some(c => c.includes('vegetable'))) category = 'vegetables';
-  else if (categories.some(c => c.includes('fruit'))) category = 'fruits';
-  else if (categories.some(c => c.includes('beverage'))) category = 'beverages';
-  else if (categories.some(c => c.includes('condiment'))) category = 'condiments';
+  const calories = firstNumeric(
+    nutriments['energy-kcal_serving'],
+    nutriments['energy-kcal_value'],
+    nutriments['energy-kcal'],
+    nutriments['energy-kcal_100g']
+  );
+  const nutrition_basis = firstNumeric(nutriments['energy-kcal_serving']) != null ? 'serving' : '100g';
 
   const emojiMap = { dairy: '\u{1F95B}', meat: '\u{1F357}', vegetables: '\u{1F96C}', fruits: '\u{1F34E}', beverages: '\u{1F964}', condiments: '\u{1FAD9}', seafood: '\u{1F41F}', grains: '\u{1F33E}', snacks: '\u{1F36A}', other: '\u{1F4E6}' };
   const colorMap = { dairy: '#E8F5E9', meat: '#FFF3E0', vegetables: '#E8F5E9', fruits: '#FCE4EC', beverages: '#E3F2FD', condiments: '#FFEBEE', seafood: '#E3F2FD', grains: '#FFF8E1', snacks: '#F3E5F5', other: '#F5F5F5' };
@@ -49,10 +78,11 @@ export function normalizeProduct(product) {
     name: product.product_name || 'Unknown Product',
     barcode: product.code,
     category,
-    calories: Math.round(nutriments['energy-kcal_100g'] || 0),
-    protein: round1(nutriments.proteins_100g || 0),
-    carbs: round1(nutriments.carbohydrates_100g || 0),
-    fat: round1(nutriments.fat_100g || 0),
+    calories,
+    nutrition_basis,
+    protein: firstNumeric(nutriments.proteins_100g),
+    carbs: firstNumeric(nutriments.carbohydrates_100g),
+    fat: firstNumeric(nutriments.fat_100g),
     emoji: emojiMap[category] || '\u{1F4E6}',
     color: colorMap[category] || '#F5F5F5',
     brand: product.brands || '',
