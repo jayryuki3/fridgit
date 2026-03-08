@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth.jsx';
 import Layout from '../components/Layout.jsx';
-import { Search, Plus, Trash2, X, Save, Loader2 } from 'lucide-react';
+import { Search, Plus, Trash2, X, Save, Loader2, Users, Globe } from 'lucide-react';
 import api from '../services/api.js';
 import toast from 'react-hot-toast';
+import SharePicker from '../components/SharePicker.jsx';
 
 function r2(val) {
   const n = parseFloat(val);
@@ -28,6 +30,7 @@ const categories = [
 const locationOptions = ['fridge', 'freezer', 'pantry', 'counter'];
 
 export default function FridgePage() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState('');
@@ -70,20 +73,28 @@ export default function FridgePage() {
     } catch { toast.error('Failed to consume'); }
   };
 
-  const openDetail = (item) => {
+  const openDetail = async (item) => {
     setSelected(item);
     setEditForm({
       shared: item.shared || false,
       location: item.location || 'fridge',
       expiry_date: item.expiry_date ? item.expiry_date.split('T')[0] : '',
+      shared_with: [],
     });
+    try {
+      const res = await api.get(`/items/${item.id}/shares`);
+      setEditForm(prev => ({ ...prev, shared_with: res.data }));
+    } catch {}
   };
 
   const saveDetail = async () => {
     if (!selected) return;
     setSaving(true);
     try {
-      const res = await api.put(`/items/${selected.id}`, editForm);
+      const res = await api.put(`/items/${selected.id}`, {
+        ...editForm,
+        shared_with: editForm.shared_with,
+      });
       setItems(items.map(i => i.id === selected.id ? res.data : i));
       setSelected(res.data);
       toast.success('Item updated');
@@ -194,7 +205,7 @@ export default function FridgePage() {
               </button>
             </div>
 
-            {/* Image / emoji */}
+            {/* Image or emoji */}
             <div className="flex justify-center mb-4">
               {selected.image_url ? (
                 <img src={selected.image_url} alt={selected.name} className="w-32 h-32 rounded-xl object-cover border border-fridgit-border dark:border-dracula-line" />
@@ -230,46 +241,57 @@ export default function FridgePage() {
               </div>
             )}
 
-            {/* Meta */}
-            <div className="space-y-3 mb-5 text-sm">
-              <div className="flex justify-between gap-4"><span className="text-fridgit-textMuted dark:text-dracula-comment">Category</span><span className="font-medium text-fridgit-text dark:text-dracula-fg">{selected.category || '-'}</span></div>
-              <div className="flex justify-between gap-4"><span className="text-fridgit-textMuted dark:text-dracula-comment">Quantity</span><span className="font-medium text-fridgit-text dark:text-dracula-fg">{selected.quantity} {selected.unit}</span></div>
-              {selected.barcode && <div className="flex justify-between gap-4"><span className="text-fridgit-textMuted dark:text-dracula-comment">Barcode</span><span className="font-medium text-fridgit-text dark:text-dracula-fg break-all text-right">{selected.barcode}</span></div>}
+            {/* Info row */}
+            <div className="flex items-center gap-3 text-sm text-fridgit-textMid dark:text-dracula-fg mb-4">
+              <span className="bg-fridgit-primaryPale dark:bg-dracula-green/20 text-fridgit-primary dark:text-dracula-green px-2 py-0.5 rounded-md text-xs font-semibold capitalize">{selected.category}</span>
+              <span>Qty: {selected.quantity} {selected.unit}</span>
             </div>
 
             {/* Editable fields */}
-            <div className="space-y-4">
+            <div className="space-y-3 mb-4">
+              {/* Sharing */}
+              <SharePicker
+                shared={editForm.shared}
+                sharedWith={editForm.shared_with || []}
+                currentUserId={user?.id}
+                onChange={({ shared, sharedWith }) => setEditForm(prev => ({ ...prev, shared, shared_with: sharedWith }))}
+              />
+
+              {/* Location */}
               <div>
-                <label className="block text-xs font-semibold text-fridgit-textMuted dark:text-dracula-comment mb-1 uppercase tracking-wide">Location</label>
-                <select value={editForm.location || 'fridge'} onChange={e => setEditForm({ ...editForm, location: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-xl border border-fridgit-border dark:border-dracula-line bg-white dark:bg-dracula-surface text-fridgit-text dark:text-dracula-fg focus:border-fridgit-primary dark:focus:border-dracula-green focus:ring-1 focus:ring-fridgit-primary dark:focus:ring-dracula-green transition">
-                  {locationOptions.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                <label className="block text-sm font-medium text-fridgit-textMid dark:text-dracula-comment mb-1">Location</label>
+                <select value={editForm.location} onChange={e => setEditForm(prev => ({ ...prev, location: e.target.value }))}
+                  className="w-full px-3 py-2.5 rounded-xl border border-fridgit-border dark:border-dracula-line bg-fridgit-bg dark:bg-dracula-bg text-fridgit-text dark:text-dracula-fg capitalize">
+                  {locationOptions.map(loc => <option key={loc} value={loc} className="capitalize">{loc}</option>)}
                 </select>
               </div>
 
+              {/* Expiry date */}
               <div>
-                <label className="block text-xs font-semibold text-fridgit-textMuted dark:text-dracula-comment mb-1 uppercase tracking-wide">Expiry Date</label>
-                <input type="date" value={editForm.expiry_date || ''} onChange={e => setEditForm({ ...editForm, expiry_date: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-xl border border-fridgit-border dark:border-dracula-line bg-white dark:bg-dracula-surface text-fridgit-text dark:text-dracula-fg focus:border-fridgit-primary dark:focus:border-dracula-green focus:ring-1 focus:ring-fridgit-primary dark:focus:ring-dracula-green transition" />
+                <label className="block text-sm font-medium text-fridgit-textMid dark:text-dracula-comment mb-1">Expiry Date</label>
+                <input type="date" value={editForm.expiry_date} onChange={e => setEditForm(prev => ({ ...prev, expiry_date: e.target.value }))}
+                  className="w-full px-3 py-2.5 rounded-xl border border-fridgit-border dark:border-dracula-line bg-fridgit-bg dark:bg-dracula-bg text-fridgit-text dark:text-dracula-fg focus:border-fridgit-primary dark:focus:border-dracula-green transition" />
               </div>
+            </div>
 
-              <div className="flex items-center justify-between rounded-xl bg-fridgit-bg dark:bg-dracula-bg p-3">
-                <div>
-                  <div className="font-medium text-fridgit-text dark:text-dracula-fg">Shared item</div>
-                  <div className="text-xs text-fridgit-textMuted dark:text-dracula-comment">Visible to all household members</div>
-                </div>
-                <button type="button" onClick={() => setEditForm({ ...editForm, shared: !editForm.shared })}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${editForm.shared ? 'bg-fridgit-primary dark:bg-dracula-green' : 'bg-fridgit-border dark:bg-dracula-line'}`}>
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${editForm.shared ? 'translate-x-6' : 'translate-x-1'}`} />
-                </button>
-              </div>
-
-              <button onClick={saveDetail} disabled={saving}
-                className="w-full bg-fridgit-primary dark:bg-dracula-green text-white dark:text-dracula-bg py-3 rounded-xl font-semibold hover:bg-fridgit-primaryLight dark:hover:bg-dracula-green/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-                Save Changes
+            {/* Action buttons */}
+            <div className="flex gap-2 mb-3">
+              <button onClick={(e) => consumeItem(selected.id, e)}
+                className="flex-1 py-2.5 rounded-xl bg-fridgit-accentPale dark:bg-dracula-orange/20 text-fridgit-accent dark:text-dracula-orange font-semibold hover:bg-fridgit-accent hover:text-white dark:hover:bg-dracula-orange dark:hover:text-dracula-bg transition-colors">
+                Use 1
+              </button>
+              <button onClick={(e) => deleteItem(selected.id, e)}
+                className="px-4 py-2.5 rounded-xl bg-fridgit-dangerPale dark:bg-dracula-red/20 text-fridgit-danger dark:text-dracula-red hover:bg-fridgit-danger hover:text-white dark:hover:bg-dracula-red dark:hover:text-dracula-bg transition-colors">
+                <Trash2 size={18} />
               </button>
             </div>
+
+            {/* Save */}
+            <button onClick={saveDetail} disabled={saving}
+              className="w-full py-3 rounded-xl bg-fridgit-primary dark:bg-dracula-green text-white dark:text-dracula-bg font-semibold hover:bg-fridgit-primaryLight dark:hover:bg-dracula-green/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+              {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+              Save Changes
+            </button>
           </div>
         </div>
       )}
