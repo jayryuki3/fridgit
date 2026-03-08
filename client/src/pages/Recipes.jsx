@@ -30,7 +30,15 @@ export default function RecipesPage() {
     try {
       const res = await api.get(`/recipes/suggestions?ingredients=${encodeURIComponent(selectedItems.join(','))}`);
       if (res.data.error) { toast.error(res.data.error); }
-      else { setRecipes(res.data); if (res.data.length === 0) toast('No recipes found for these ingredients'); }
+      else {
+        const sorted = [...res.data].sort((a, b) => {
+          if (b.usedIngredientCount !== a.usedIngredientCount)
+            return b.usedIngredientCount - a.usedIngredientCount;
+          return a.missedIngredientCount - b.missedIngredientCount;
+        });
+        setRecipes(sorted);
+        if (res.data.length === 0) toast('No recipes found for these ingredients');
+      }
     } catch (err) {
       const msg = err.response?.data?.error || 'Failed to fetch recipes';
       toast.error(msg);
