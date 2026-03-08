@@ -4,6 +4,8 @@ import Layout from '../components/Layout.jsx';
 import { Camera, X, Search, ArrowLeft, Loader2, Package } from 'lucide-react';
 import api from '../services/api.js';
 import toast from 'react-hot-toast';
+import { useAuth } from '../hooks/useAuth.jsx';
+import SharePicker from '../components/SharePicker.jsx';
 
 const categoryOptions = [
   { key: 'dairy', emoji: '\u{1F95B}', label: 'Dairy' },
@@ -27,6 +29,7 @@ function r1(val) {
 
 export default function NewItem() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [mode, setMode] = useState('form');
   const [scanning, setScanning] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -37,7 +40,7 @@ export default function NewItem() {
   const [form, setForm] = useState({
     name: '', barcode: '', category: 'other', quantity: 1, unit: 'count',
     location: 'fridge', expiry_date: '', calories: '', protein: '', carbs: '', fat: '',
-    emoji: '\u{1F4E6}', color: '#F5F5F5', shared: false, image_url: '',
+    emoji: '\u{1F4E6}', color: '#F5F5F5', shared: false, image_url: '', shared_with: [],
   });
 
   const updateForm = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
@@ -135,6 +138,7 @@ export default function NewItem() {
         fat: r1(form.fat) || null,
         expiry_date: form.expiry_date || null,
         image_url: form.image_url || null,
+        shared_with: form.shared_with,
       });
       toast.success('Item added!');
       navigate('/fridge');
@@ -268,14 +272,13 @@ export default function NewItem() {
                 className="w-full px-3 py-2.5 rounded-xl border border-fridgit-border dark:border-dracula-line bg-fridgit-bg dark:bg-dracula-bg text-fridgit-text dark:text-dracula-fg focus:border-fridgit-primary dark:focus:border-dracula-green transition" />
             </div>
 
-            {/* Shared toggle */}
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-fridgit-textMid dark:text-dracula-comment">Shared with household</span>
-              <button type="button" onClick={() => updateForm('shared', !form.shared)}
-                className={`w-12 h-6 rounded-full transition-colors ${form.shared ? 'bg-fridgit-primary dark:bg-dracula-green' : 'bg-fridgit-border dark:bg-dracula-line'}`}>
-                <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${form.shared ? 'translate-x-6' : 'translate-x-0.5'}`} />
-              </button>
-            </div>
+            {/* Sharing */}
+            <SharePicker
+              shared={form.shared}
+              sharedWith={form.shared_with}
+              currentUserId={user?.id}
+              onChange={({ shared, sharedWith }) => setForm(prev => ({ ...prev, shared, shared_with: sharedWith }))}
+            />
           </div>
 
           {/* Nutrition info */}
