@@ -281,7 +281,7 @@ export default function NewItem() {
               {searching ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
             </button>
           </div>
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {searchResults.map((p, i) => (
               <button key={i} onClick={() => selectProduct(p)}
                 className="w-full bg-white dark:bg-dracula-surface rounded-xl border border-fridgit-border dark:border-dracula-line p-3 flex items-center gap-3 text-left hover:bg-fridgit-surfaceAlt dark:hover:bg-dracula-highlight transition-colors">
@@ -318,7 +318,7 @@ export default function NewItem() {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 max-w-3xl mx-auto">
           <div className="bg-white dark:bg-dracula-surface rounded-xl border border-fridgit-border dark:border-dracula-line p-4 space-y-3">
             {form.image_url && (
               <div className="flex justify-center">
