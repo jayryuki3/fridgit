@@ -9,6 +9,13 @@ body {
   background: #F7F9F4;
   min-height: 100vh;
   margin: 0;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.dark body,
+html.dark body {
+  background: #282a36;
+  color: #f8f8f2;
 }
 
 h1, h2, h3 {
@@ -17,6 +24,15 @@ h1, h2, h3 {
 
 * { box-sizing: border-box; }
 input, textarea, button, select { font-family: inherit; outline: none; }
+
+/* Scrollbar hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
 
 .slide-up {
   animation: slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1);
@@ -32,4 +48,9 @@ input, textarea, button, select { font-family: inherit; outline: none; }
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* Dark mode form inputs */
+html.dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
 }
