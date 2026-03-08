@@ -145,7 +145,7 @@ export default function HomePage() {
               <AlertTriangle size={18} className="text-fridgit-accent dark:text-dracula-orange" />
               Needs Attention
             </h2>
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {expiring.slice(0, 5).map(item => {
                 const days = getDaysUntilExpiry(item.expiry_date);
                 return (
@@ -182,7 +182,7 @@ export default function HomePage() {
         )}
 
         {/* FAB Button */}
-        <div className="fixed bottom-24 right-4 flex flex-col gap-3 max-w-lg">
+        <div className="fixed bottom-24 md:bottom-10 right-4 md:right-10 flex flex-col gap-3 z-40">
           <button onClick={() => navigate('/new-item')}
             className="w-14 h-14 rounded-full bg-fridgit-primary dark:bg-dracula-green text-white dark:text-dracula-bg shadow-lg hover:bg-fridgit-primaryLight dark:hover:bg-dracula-green/80 transition-colors flex items-center justify-center">
             <Plus size={28} />
@@ -192,9 +192,9 @@ export default function HomePage() {
 
       {/* Item Detail Drawer */}
       {selected && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setSelected(null)}>
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" onClick={() => setSelected(null)}>
           <div className="absolute inset-0 bg-black/40 dark:bg-black/60" />
-          <div className="relative w-full max-w-lg bg-white dark:bg-dracula-currentLine rounded-t-2xl p-5 pb-8 slide-up max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="relative w-full max-w-lg bg-white dark:bg-dracula-currentLine rounded-t-2xl md:rounded-2xl p-5 pb-8 md:pb-5 slide-up md:animate-none md:scale-100 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             {/* Close button */}
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-serif text-fridgit-text dark:text-dracula-fg">{selected.name}</h2>
