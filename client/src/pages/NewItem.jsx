@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout.jsx';
 import { Camera, X, Search, ArrowLeft, Loader2, Package } from 'lucide-react';
@@ -27,6 +27,9 @@ const expiryUnitOptions = [
   { value: 'months', label: 'Months' },
   { value: 'years', label: 'Years' },
 ];
+const WHEEL_ROW_HEIGHT = 40;
+const WHEEL_VISIBLE_ROWS = 5;
+const WHEEL_SIDE_PADDING = Math.floor(WHEEL_VISIBLE_ROWS / 2);
 
 function r1(val) {
   const n = parseFloat(val);
@@ -67,12 +70,89 @@ export default function NewItem() {
   });
   const [expiryNumber, setExpiryNumber] = useState(3);
   const [expiryUnit, setExpiryUnit] = useState('days');
+  const expiryNumberWheelRef = useRef(null);
+  const expiryUnitWheelRef = useRef(null);
+  const numberScrollTimeoutRef = useRef(null);
+  const unitScrollTimeoutRef = useRef(null);
+
+  const numberWheelOptions = useMemo(
+    () => [
+      ...Array.from({ length: WHEEL_SIDE_PADDING }, (_, i) => ({ key: `number-pad-top-${i}`, value: null, label: '' })),
+      ...expiryNumberOptions.map((value) => ({ key: `number-${value}`, value, label: String(value) })),
+      ...Array.from({ length: WHEEL_SIDE_PADDING }, (_, i) => ({ key: `number-pad-bottom-${i}`, value: null, label: '' })),
+    ],
+    []
+  );
+  const unitWheelOptions = useMemo(
+    () => [
+      ...Array.from({ length: WHEEL_SIDE_PADDING }, (_, i) => ({ key: `unit-pad-top-${i}`, value: null, label: '' })),
+      ...expiryUnitOptions.map((option) => ({ key: `unit-${option.value}`, value: option.value, label: option.label })),
+      ...Array.from({ length: WHEEL_SIDE_PADDING }, (_, i) => ({ key: `unit-pad-bottom-${i}`, value: null, label: '' })),
+    ],
+    []
+  );
 
   const updateForm = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
 
   useEffect(() => {
     updateForm('expiry_date', addToDate(expiryNumber, expiryUnit));
   }, [expiryNumber, expiryUnit]);
+
+  const snapWheel = (ref, index) => {
+    if (!ref.current) return;
+    ref.current.scrollTo({ top: index * WHEEL_ROW_HEIGHT, behavior: 'smooth' });
+  };
+
+  const syncNumberFromScroll = () => {
+    if (!expiryNumberWheelRef.current) return;
+    const rawIndex = Math.round(expiryNumberWheelRef.current.scrollTop / WHEEL_ROW_HEIGHT);
+    const clampedValue = expiryNumberOptions[Math.min(expiryNumberOptions.length - 1, Math.max(0, rawIndex - WHEEL_SIDE_PADDING))];
+    if (clampedValue !== expiryNumber) setExpiryNumber(clampedValue);
+  };
+
+  const syncUnitFromScroll = () => {
+    if (!expiryUnitWheelRef.current) return;
+    const rawIndex = Math.round(expiryUnitWheelRef.current.scrollTop / WHEEL_ROW_HEIGHT);
+    const optionIndex = Math.min(expiryUnitOptions.length - 1, Math.max(0, rawIndex - WHEEL_SIDE_PADDING));
+    const clampedValue = expiryUnitOptions[optionIndex].value;
+    if (clampedValue !== expiryUnit) setExpiryUnit(clampedValue);
+  };
+
+  const handleWheelScroll = (type) => {
+    if (type === 'number') {
+      syncNumberFromScroll();
+      if (numberScrollTimeoutRef.current) clearTimeout(numberScrollTimeoutRef.current);
+      numberScrollTimeoutRef.current = setTimeout(() => {
+        if (!expiryNumberWheelRef.current) return;
+        const rawIndex = Math.round(expiryNumberWheelRef.current.scrollTop / WHEEL_ROW_HEIGHT);
+        const snappedIndex = Math.min(expiryNumberOptions.length - 1, Math.max(0, rawIndex - WHEEL_SIDE_PADDING)) + WHEEL_SIDE_PADDING;
+        snapWheel(expiryNumberWheelRef, snappedIndex);
+      }, 90);
+      return;
+    }
+
+    syncUnitFromScroll();
+    if (unitScrollTimeoutRef.current) clearTimeout(unitScrollTimeoutRef.current);
+    unitScrollTimeoutRef.current = setTimeout(() => {
+      if (!expiryUnitWheelRef.current) return;
+      const rawIndex = Math.round(expiryUnitWheelRef.current.scrollTop / WHEEL_ROW_HEIGHT);
+      const snappedIndex = Math.min(expiryUnitOptions.length - 1, Math.max(0, rawIndex - WHEEL_SIDE_PADDING)) + WHEEL_SIDE_PADDING;
+      snapWheel(expiryUnitWheelRef, snappedIndex);
+    }, 90);
+  };
+
+  useEffect(() => {
+    snapWheel(expiryNumberWheelRef, expiryNumberOptions.indexOf(expiryNumber) + WHEEL_SIDE_PADDING);
+  }, [expiryNumber]);
+
+  useEffect(() => {
+    snapWheel(expiryUnitWheelRef, expiryUnitOptions.findIndex((option) => option.value === expiryUnit) + WHEEL_SIDE_PADDING);
+  }, [expiryUnit]);
+
+  useEffect(() => () => {
+    if (numberScrollTimeoutRef.current) clearTimeout(numberScrollTimeoutRef.current);
+    if (unitScrollTimeoutRef.current) clearTimeout(unitScrollTimeoutRef.current);
+  }, []);
 
   const startScan = async () => {
     setMode('scan');
@@ -304,58 +384,75 @@ export default function NewItem() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                   <div>
                     <div className="text-xs font-medium text-fridgit-textMuted dark:text-dracula-comment mb-2">Number</div>
-                    <div className="rounded-xl border border-fridgit-border dark:border-dracula-line bg-white/80 dark:bg-dracula-surface p-2 shadow-inner">
-                      <div className="grid grid-cols-5 items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setExpiryNumber(Math.max(expiryNumberOptions[0], expiryNumber - 1))}
-                          className="h-11 rounded-lg border border-fridgit-border dark:border-dracula-line bg-fridgit-bg dark:bg-dracula-bg text-lg font-semibold text-fridgit-text dark:text-dracula-fg hover:bg-fridgit-surfaceAlt dark:hover:bg-dracula-highlight transition-colors"
-                          aria-label="Decrease expiry number"
-                        >
-                          -
-                        </button>
-                        <div className="col-span-3 relative overflow-hidden rounded-xl border border-fridgit-primary/20 dark:border-dracula-green/25 bg-fridgit-primary/5 dark:bg-dracula-green/10 px-2 py-1 text-center">
-                          <div className="pointer-events-none absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-white/85 dark:from-dracula-surface to-transparent" />
-                          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-white/85 dark:from-dracula-surface to-transparent" />
-                          <div className="text-xs text-fridgit-textMuted dark:text-dracula-comment opacity-50 h-6 leading-6 select-none">
-                            {Math.max(expiryNumberOptions[0], expiryNumber - 1)}
-                          </div>
-                          <div className="h-10 leading-10 text-2xl font-semibold text-fridgit-primary dark:text-dracula-green select-none">
-                            {expiryNumber}
-                          </div>
-                          <div className="text-xs text-fridgit-textMuted dark:text-dracula-comment opacity-50 h-6 leading-6 select-none">
-                            {Math.min(expiryNumberOptions[expiryNumberOptions.length - 1], expiryNumber + 1)}
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setExpiryNumber(Math.min(expiryNumberOptions[expiryNumberOptions.length - 1], expiryNumber + 1))}
-                          className="h-11 rounded-lg border border-fridgit-border dark:border-dracula-line bg-fridgit-bg dark:bg-dracula-bg text-lg font-semibold text-fridgit-text dark:text-dracula-fg hover:bg-fridgit-surfaceAlt dark:hover:bg-dracula-highlight transition-colors"
-                          aria-label="Increase expiry number"
-                        >
-                          +
-                        </button>
+                    <div className="relative rounded-xl border border-fridgit-border dark:border-dracula-line bg-white/80 dark:bg-dracula-surface shadow-inner overflow-hidden">
+                      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-10 bg-gradient-to-b from-white dark:from-dracula-surface to-transparent" />
+                      <div className="pointer-events-none absolute inset-x-2 top-1/2 z-10 h-10 -translate-y-1/2 rounded-lg border border-fridgit-primary/20 dark:border-dracula-green/25 bg-fridgit-primary/5 dark:bg-dracula-green/10" />
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-10 bg-gradient-to-t from-white dark:from-dracula-surface to-transparent" />
+                      <div
+                        ref={expiryNumberWheelRef}
+                        onScroll={() => handleWheelScroll('number')}
+                        className="h-52 overflow-y-auto overflow-x-hidden snap-y snap-mandatory scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden touch-pan-y"
+                        style={{ WebkitOverflowScrolling: 'touch' }}
+                      >
+                        {numberWheelOptions.map((option, index) => {
+                          const isSelected = option.value === expiryNumber;
+                          return (
+                            <div
+                              key={option.key}
+                              className={`flex h-10 snap-center items-center justify-center px-3 text-center select-none transition-all ${
+                                option.value == null
+                                  ? 'opacity-0'
+                                  : isSelected
+                                    ? 'text-2xl font-semibold text-fridgit-primary dark:text-dracula-green'
+                                    : 'text-sm text-fridgit-textMuted dark:text-dracula-comment opacity-45'
+                              }`}
+                              onClick={() => {
+                                if (option.value == null) return;
+                                setExpiryNumber(option.value);
+                                snapWheel(expiryNumberWheelRef, index);
+                              }}
+                            >
+                              {option.label}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
                   <div>
                     <div className="text-xs font-medium text-fridgit-textMuted dark:text-dracula-comment mb-2">Unit</div>
-                    <div className="rounded-xl border border-fridgit-border dark:border-dracula-line bg-white/80 dark:bg-dracula-surface p-2 shadow-inner">
-                      <div className="grid grid-cols-3 gap-2">
-                        {expiryUnitOptions.map((option) => (
-                          <button
-                            key={option.value}
-                            type="button"
-                            onClick={() => setExpiryUnit(option.value)}
-                            className={`h-14 rounded-xl border text-sm font-medium transition-all ${
-                              expiryUnit === option.value
-                                ? 'border-fridgit-primary dark:border-dracula-green bg-fridgit-primary dark:bg-dracula-green text-white dark:text-dracula-bg shadow-sm'
-                                : 'border-fridgit-border dark:border-dracula-line bg-fridgit-bg dark:bg-dracula-bg text-fridgit-text dark:text-dracula-fg opacity-70 hover:opacity-100 hover:bg-fridgit-surfaceAlt dark:hover:bg-dracula-highlight'
-                            }`}
-                          >
-                            {option.label}
-                          </button>
-                        ))}
+                    <div className="relative rounded-xl border border-fridgit-border dark:border-dracula-line bg-white/80 dark:bg-dracula-surface shadow-inner overflow-hidden">
+                      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-10 bg-gradient-to-b from-white dark:from-dracula-surface to-transparent" />
+                      <div className="pointer-events-none absolute inset-x-2 top-1/2 z-10 h-10 -translate-y-1/2 rounded-lg border border-fridgit-primary/20 dark:border-dracula-green/25 bg-fridgit-primary/5 dark:bg-dracula-green/10" />
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-10 bg-gradient-to-t from-white dark:from-dracula-surface to-transparent" />
+                      <div
+                        ref={expiryUnitWheelRef}
+                        onScroll={() => handleWheelScroll('unit')}
+                        className="h-52 overflow-y-auto overflow-x-hidden snap-y snap-mandatory scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden touch-pan-y"
+                        style={{ WebkitOverflowScrolling: 'touch' }}
+                      >
+                        {unitWheelOptions.map((option, index) => {
+                          const isSelected = option.value === expiryUnit;
+                          return (
+                            <div
+                              key={option.key}
+                              className={`flex h-10 snap-center items-center justify-center px-3 text-center select-none transition-all ${
+                                option.value == null
+                                  ? 'opacity-0'
+                                  : isSelected
+                                    ? 'text-lg font-semibold text-fridgit-primary dark:text-dracula-green'
+                                    : 'text-sm text-fridgit-textMuted dark:text-dracula-comment opacity-45'
+                              }`}
+                              onClick={() => {
+                                if (option.value == null) return;
+                                setExpiryUnit(option.value);
+                                snapWheel(expiryUnitWheelRef, index);
+                              }}
+                            >
+                              {option.label}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
