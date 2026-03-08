@@ -79,7 +79,7 @@ export default function HomePage() {
               {expiring.slice(0, 5).map(item => {
                 const days = getDaysUntilExpiry(item.expiry_date);
                 return (
-                  <div key={item.id} className="bg-white dark:bg-dracula-surface rounded-xl p-3 border border-fridgit-border dark:border-dracula-line flex items-center gap-3">
+                  <div key={item.id} onClick={() => navigate('/fridge', { state: { openItemId: item.id } })} className="bg-white dark:bg-dracula-surface rounded-xl p-3 border border-fridgit-border dark:border-dracula-line flex items-center gap-3 cursor-pointer">
                     {item.image_url ? (
                       <img src={item.image_url} alt={item.name} className="w-10 h-10 rounded-lg object-cover" />
                     ) : (
@@ -89,7 +89,7 @@ export default function HomePage() {
                       <div className="font-medium text-fridgit-text dark:text-dracula-fg truncate">{item.name}</div>
                       <div className="text-xs text-fridgit-textMuted dark:text-dracula-comment">Qty: {item.quantity}</div>
                     </div>
-                    <span className={`text-xs font-semibold px-2 py-1 rounded-lg ${getExpiryColor(days)}`}>
+                    <span className={`relative z-10 text-xs font-semibold px-2 py-1 rounded-lg ${getExpiryColor(days)}`}>
                       {days <= 0 ? 'Expired' : days === 1 ? '1 day' : `${days} days`}
                     </span>
                   </div>
