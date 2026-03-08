@@ -301,47 +301,56 @@ export default function NewItem() {
             <div>
               <label className="block text-sm font-medium text-fridgit-textMid dark:text-dracula-comment mb-1">Expiry Date</label>
               <div className="rounded-2xl border border-fridgit-border dark:border-dracula-line bg-fridgit-bg dark:bg-dracula-bg p-3 shadow-sm">
-                <div className="grid grid-cols-2 gap-3 mb-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                   <div>
                     <div className="text-xs font-medium text-fridgit-textMuted dark:text-dracula-comment mb-2">Number</div>
-                    <div className="relative">
-                      <div className="pointer-events-none absolute inset-x-0 top-0 h-8 rounded-t-xl bg-gradient-to-b from-fridgit-bg dark:from-dracula-bg to-transparent z-10" />
-                      <div className="pointer-events-none absolute inset-x-2 top-1/2 -translate-y-1/2 h-11 rounded-xl border border-fridgit-primary/20 dark:border-dracula-green/25 bg-fridgit-primary/5 dark:bg-dracula-green/10 z-10" />
-                      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 rounded-b-xl bg-gradient-to-t from-fridgit-bg dark:from-dracula-bg to-transparent z-10" />
-                      <div className="h-36 overflow-y-auto rounded-xl border border-fridgit-border dark:border-dracula-line bg-white/80 dark:bg-dracula-surface snap-y snap-mandatory shadow-inner">
-                        {expiryNumberOptions.map((value) => (
-                          <button
-                            key={value}
-                            type="button"
-                            onClick={() => setExpiryNumber(value)}
-                            className={`w-full h-11 px-3 text-sm snap-center transition-all duration-200 ${
-                              expiryNumber === value
-                                ? 'bg-fridgit-primary dark:bg-dracula-green text-white dark:text-dracula-bg font-semibold opacity-100 scale-[1.02]'
-                                : 'text-fridgit-text dark:text-dracula-fg opacity-45 hover:opacity-70 hover:bg-fridgit-surfaceAlt/70 dark:hover:bg-dracula-highlight/70'
-                            }`}
-                          >
-                            {value}
-                          </button>
-                        ))}
+                    <div className="rounded-xl border border-fridgit-border dark:border-dracula-line bg-white/80 dark:bg-dracula-surface p-2 shadow-inner">
+                      <div className="grid grid-cols-5 items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setExpiryNumber(Math.max(expiryNumberOptions[0], expiryNumber - 1))}
+                          className="h-11 rounded-lg border border-fridgit-border dark:border-dracula-line bg-fridgit-bg dark:bg-dracula-bg text-lg font-semibold text-fridgit-text dark:text-dracula-fg hover:bg-fridgit-surfaceAlt dark:hover:bg-dracula-highlight transition-colors"
+                          aria-label="Decrease expiry number"
+                        >
+                          -
+                        </button>
+                        <div className="col-span-3 relative overflow-hidden rounded-xl border border-fridgit-primary/20 dark:border-dracula-green/25 bg-fridgit-primary/5 dark:bg-dracula-green/10 px-2 py-1 text-center">
+                          <div className="pointer-events-none absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-white/85 dark:from-dracula-surface to-transparent" />
+                          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-white/85 dark:from-dracula-surface to-transparent" />
+                          <div className="text-xs text-fridgit-textMuted dark:text-dracula-comment opacity-50 h-6 leading-6 select-none">
+                            {Math.max(expiryNumberOptions[0], expiryNumber - 1)}
+                          </div>
+                          <div className="h-10 leading-10 text-2xl font-semibold text-fridgit-primary dark:text-dracula-green select-none">
+                            {expiryNumber}
+                          </div>
+                          <div className="text-xs text-fridgit-textMuted dark:text-dracula-comment opacity-50 h-6 leading-6 select-none">
+                            {Math.min(expiryNumberOptions[expiryNumberOptions.length - 1], expiryNumber + 1)}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setExpiryNumber(Math.min(expiryNumberOptions[expiryNumberOptions.length - 1], expiryNumber + 1))}
+                          className="h-11 rounded-lg border border-fridgit-border dark:border-dracula-line bg-fridgit-bg dark:bg-dracula-bg text-lg font-semibold text-fridgit-text dark:text-dracula-fg hover:bg-fridgit-surfaceAlt dark:hover:bg-dracula-highlight transition-colors"
+                          aria-label="Increase expiry number"
+                        >
+                          +
+                        </button>
                       </div>
                     </div>
                   </div>
                   <div>
                     <div className="text-xs font-medium text-fridgit-textMuted dark:text-dracula-comment mb-2">Unit</div>
-                    <div className="relative">
-                      <div className="pointer-events-none absolute inset-x-0 top-0 h-8 rounded-t-xl bg-gradient-to-b from-fridgit-bg dark:from-dracula-bg to-transparent z-10" />
-                      <div className="pointer-events-none absolute inset-x-2 top-1/2 -translate-y-1/2 h-11 rounded-xl border border-fridgit-primary/20 dark:border-dracula-green/25 bg-fridgit-primary/5 dark:bg-dracula-green/10 z-10" />
-                      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 rounded-b-xl bg-gradient-to-t from-fridgit-bg dark:from-dracula-bg to-transparent z-10" />
-                      <div className="h-36 overflow-y-auto rounded-xl border border-fridgit-border dark:border-dracula-line bg-white/80 dark:bg-dracula-surface snap-y snap-mandatory shadow-inner">
+                    <div className="rounded-xl border border-fridgit-border dark:border-dracula-line bg-white/80 dark:bg-dracula-surface p-2 shadow-inner">
+                      <div className="grid grid-cols-3 gap-2">
                         {expiryUnitOptions.map((option) => (
                           <button
                             key={option.value}
                             type="button"
                             onClick={() => setExpiryUnit(option.value)}
-                            className={`w-full h-11 px-3 text-sm snap-center transition-all duration-200 ${
+                            className={`h-14 rounded-xl border text-sm font-medium transition-all ${
                               expiryUnit === option.value
-                                ? 'bg-fridgit-primary dark:bg-dracula-green text-white dark:text-dracula-bg font-semibold opacity-100 scale-[1.02]'
-                                : 'text-fridgit-text dark:text-dracula-fg opacity-45 hover:opacity-70 hover:bg-fridgit-surfaceAlt/70 dark:hover:bg-dracula-highlight/70'
+                                ? 'border-fridgit-primary dark:border-dracula-green bg-fridgit-primary dark:bg-dracula-green text-white dark:text-dracula-bg shadow-sm'
+                                : 'border-fridgit-border dark:border-dracula-line bg-fridgit-bg dark:bg-dracula-bg text-fridgit-text dark:text-dracula-fg opacity-70 hover:opacity-100 hover:bg-fridgit-surfaceAlt dark:hover:bg-dracula-highlight'
                             }`}
                           >
                             {option.label}
@@ -351,10 +360,10 @@ export default function NewItem() {
                     </div>
                   </div>
                 </div>
-                <div className="rounded-xl border border-fridgit-border dark:border-dracula-line bg-white/80 dark:bg-dracula-surface p-3">
+                <div className="rounded-xl border border-fridgit-border dark:border-dracula-line bg-white/80 dark:bg-dracula-surface p-3 overflow-hidden">
                   <div className="text-xs font-medium text-fridgit-textMuted dark:text-dracula-comment mb-2">Or pick an exact date</div>
                   <input type="date" value={form.expiry_date} onChange={e => updateForm('expiry_date', e.target.value)}
-                    className="w-full px-3 py-3 rounded-xl border border-fridgit-border dark:border-dracula-line bg-fridgit-bg dark:bg-dracula-bg text-fridgit-text dark:text-dracula-fg focus:border-fridgit-primary dark:focus:border-dracula-green transition shadow-sm" />
+                    className="block w-full min-w-0 px-3 py-3 rounded-lg border border-fridgit-border dark:border-dracula-line bg-fridgit-bg dark:bg-dracula-bg text-fridgit-text dark:text-dracula-fg focus:border-fridgit-primary dark:focus:border-dracula-green transition shadow-sm" />
                 </div>
               </div>
             </div>
