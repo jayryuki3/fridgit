@@ -194,9 +194,9 @@ export default function FridgePage() {
 
       {/* Item Detail Drawer */}
       {selected && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setSelected(null)}>
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" onClick={() => setSelected(null)}>
           <div className="absolute inset-0 bg-black/40 dark:bg-black/60" />
-          <div className="relative w-full max-w-lg bg-white dark:bg-dracula-currentLine rounded-t-2xl p-5 pb-8 slide-up max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="relative w-full max-w-lg bg-white dark:bg-dracula-currentLine rounded-t-2xl md:rounded-2xl p-5 pb-8 md:pb-5 slide-up md:animate-none md:scale-100 max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             {/* Close button */}
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-serif text-fridgit-text dark:text-dracula-fg">{selected.name}</h2>
