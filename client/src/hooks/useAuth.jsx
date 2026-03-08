@@ -27,21 +27,36 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  const saveAuth = (data) => {
+    localStorage.setItem('fridgit_token', data.token);
+    localStorage.setItem('fridgit_user', JSON.stringify(data.user));
+    setToken(data.token);
+    setUser(data.user);
+  };
+
   const login = async (email, password) => {
     const res = await api.post('/auth/login', { email, password });
-    localStorage.setItem('fridgit_token', res.data.token);
-    localStorage.setItem('fridgit_user', JSON.stringify(res.data.user));
-    setToken(res.data.token);
-    setUser(res.data.user);
+    saveAuth(res.data);
     return res.data;
   };
 
   const register = async (name, email, password) => {
     const res = await api.post('/auth/register', { name, email, password });
-    localStorage.setItem('fridgit_token', res.data.token);
-    localStorage.setItem('fridgit_user', JSON.stringify(res.data.user));
-    setToken(res.data.token);
-    setUser(res.data.user);
+    saveAuth(res.data);
+    return res.data;
+  };
+
+  // Insecure mode: login by picking a user id
+  const guestLogin = async (userId) => {
+    const res = await api.post('/auth/login', { userId });
+    saveAuth(res.data);
+    return res.data;
+  };
+
+  // Insecure mode: register with just a name
+  const guestRegister = async (name) => {
+    const res = await api.post('/auth/register', { name });
+    saveAuth(res.data);
     return res.data;
   };
 
@@ -53,7 +68,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, isAuthenticated: !!token }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, guestLogin, guestRegister, logout, isAuthenticated: !!token }}>
       {children}
     </AuthContext.Provider>
   );
