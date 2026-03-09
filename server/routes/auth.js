@@ -16,22 +16,8 @@ router.get('/mode', (req, res) => {
   res.json({ secure: isSecure() });
 });
 
-// Returns all users -- works in both secure and insecure mode.
-// In secure mode, requires a valid auth token.
+// Returns all users for the picker screen (safe fields only)
 router.get('/users', async (req, res) => {
-  if (isSecure()) {
-    // Require auth in secure mode
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-    try {
-      const { verifyToken } = await import('../utils/jwt.js');
-      verifyToken(authHeader.split(' ')[1]);
-    } catch {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-  }
   try {
     const result = await db.query(
       'SELECT id, name, household_name, created_at FROM users ORDER BY name ASC'
@@ -54,7 +40,7 @@ router.post('/members', async (req, res) => {
     if (existing.rows.length > 0) {
       return res.status(400).json({ error: 'That name is already taken' });
     }
-    const dummyEmail = `${name.trim().toLowerCase().replace(/\s+/g, '-')}-${Date.now()}@fridgit.local`;
+    const dummyEmail = `${name.trim().toLowerCase().replace(/\\s+/g, '-')}-${Date.now()}@fridgit.local`;
     const placeholderHash = await hashPassword(`fridgit-member-${Date.now()}`);
     const result = await db.query(
       'INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, name, household_name, created_at',
@@ -100,7 +86,7 @@ router.post('/register', async (req, res) => {
       if (existing.rows.length > 0) {
         return res.status(400).json({ error: 'That name is already taken' });
       }
-      const dummyEmail = `${name.trim().toLowerCase().replace(/\s+/g, '-')}-${Date.now()}@fridgit.local`;
+      const dummyEmail = `${name.trim().toLowerCase().replace(/\\s+/g, '-')}-${Date.now()}@fridgit.local`;
       const placeholderHash = await hashPassword(`fridgit-guest-${Date.now()}`);
       const result = await db.query(
         'INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, name, email, household_name, created_at',
