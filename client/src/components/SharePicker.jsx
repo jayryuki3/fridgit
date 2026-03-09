@@ -189,3 +189,4 @@ export default function SharePicker({ shared, sharedWith, currentUserId, onChang
       )}
     </div>
   );
+}
