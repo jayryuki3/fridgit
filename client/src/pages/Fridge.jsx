@@ -4,6 +4,8 @@ import Layout from '../components/Layout.jsx';
 import { Search, Plus, Trash2, X, Save, Loader2 } from 'lucide-react';
 import api from '../services/api.js';
 import toast from 'react-hot-toast';
+import { useAuth } from '../hooks/useAuth.jsx';
+import SharePicker from '../components/SharePicker.jsx';
 
 function r2(val) {
   const n = parseFloat(val);
@@ -31,6 +33,7 @@ const locationOptions = ['fridge', 'freezer', 'pantry', 'counter'];
 
 export default function FridgePage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
@@ -86,6 +89,7 @@ export default function FridgePage() {
     setSelected(item);
     setEditForm({
       shared: item.shared || false,
+      shared_with: item.shared_with || [],
       location: item.location || 'fridge',
       expiry_date: item.expiry_date ? item.expiry_date.split('T')[0] : '',
     });
@@ -300,15 +304,13 @@ export default function FridgePage() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between rounded-2xl border border-fridgit-border bg-fridgit-bg px-4 py-3 dark:border-dracula-line dark:bg-dracula-bg">
-                  <span className="text-sm font-medium text-fridgit-textMid dark:text-dracula-comment">Shared with household</span>
-                  <button
-                    type="button"
-                    onClick={() => setEditForm((prev) => ({ ...prev, shared: !prev.shared }))}
-                    className={`h-6 w-12 rounded-full transition-colors ${editForm.shared ? 'bg-fridgit-primary dark:bg-dracula-green' : 'bg-fridgit-border dark:bg-dracula-line'}`}
-                  >
-                    <div className={`h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${editForm.shared ? 'translate-x-6' : 'translate-x-0.5'}`} />
-                  </button>
+                <div className="rounded-2xl border border-fridgit-border bg-fridgit-bg p-4 dark:border-dracula-line dark:bg-dracula-bg">
+                  <SharePicker 
+                    shared={editForm.shared} 
+                    sharedWith={editForm.shared_with || []} 
+                    currentUserId={user?.id} 
+                    onChange={({ shared, sharedWith }) => setEditForm((prev) => ({ ...prev, shared, shared_with: sharedWith }))} 
+                  />
                 </div>
 
                 <button
