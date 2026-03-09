@@ -52,7 +52,9 @@ function r2(val) {
   if (val == null || val === '' || isNaN(n)) return '';
   return String(Math.round(n * 100) / 100);
 }
-function hasNutrition(v) { return v != null && v !== '' && v !== false; }
+function hasNutrition(v) {
+  return v != null && v !== '' && v !== false;
+}
 
 export default function NewItem() {
   const navigate = useNavigate();
@@ -69,24 +71,31 @@ export default function NewItem() {
   const numberScrollTimeoutRef = useRef(null);
   const unitScrollTimeoutRef = useRef(null);
   const [form, setForm] = useState({
-    name: '', barcode: '', category: 'other', quantity: 1, unit: 'count',
-    location: 'fridge', expiry_date: '', calories: '', protein: '', carbs: '', fat: '',
+    name: '',
+    barcode: '',
+    category: 'other',
+    quantity: 1,
+    unit: 'count',
+    location: 'fridge',
+    expiry_date: '',
+    calories: '',
+    protein: '',
+    carbs: '',
+    fat: '',
     nutrition_basis: '100g',
-    emoji: '\u{1F4E6}', color: '#F5F5F5', shared: false, image_url: '', shared_with: [],
+    emoji: '\u{1F4E6}',
+    color: '#F5F5F5',
+    shared: false,
+    image_url: '',
+    shared_with: [],
   });
   const [expiryNumber, setExpiryNumber] = useState(3);
   const [expiryUnit, setExpiryUnit] = useState('days');
 
-  const numberWheelOptions = useMemo(
-    () => expiryNumberOptions.map((value) => ({ key: `number-${value}`, value, label: String(value) })),
-    []
-  );
-  const unitWheelOptions = useMemo(
-    () => expiryUnitOptions.map((option) => ({ key: `unit-${option.value}`, value: option.value, label: option.label })),
-    []
-  );
+  const numberWheelOptions = useMemo(() => expiryNumberOptions.map((value) => ({ key: `number-${value}`, value, label: String(value) })), []);
+  const unitWheelOptions = useMemo(() => expiryUnitOptions.map((option) => ({ key: `unit-${option.value}`, value: option.value, label: option.label })), []);
 
-  const updateForm = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
+  const updateForm = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 
   const snapWheel = (ref, index) => {
     if (!ref.current) return;
@@ -141,7 +150,7 @@ export default function NewItem() {
         },
         () => {}
       );
-    } catch (err) {
+    } catch {
       toast.error('Camera access denied or not available');
       setMode('form');
       setScanning(false);
@@ -150,7 +159,9 @@ export default function NewItem() {
 
   const stopScan = async () => {
     if (scannerRef.current) {
-      try { await scannerRef.current.stop(); } catch {}
+      try {
+        await scannerRef.current.stop();
+      } catch {}
       scannerRef.current = null;
     }
     setScanning(false);
@@ -171,7 +182,7 @@ export default function NewItem() {
     try {
       const res = await api.get(`/barcode/${code}`);
       const p = res.data;
-      setForm(prev => ({
+      setForm((prev) => ({
         ...prev,
         name: p.name || prev.name,
         category: p.category || prev.category,
@@ -204,7 +215,7 @@ export default function NewItem() {
   };
 
   const selectProduct = (product) => {
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
       name: product.name,
       category: product.category,
@@ -253,13 +264,15 @@ export default function NewItem() {
   if (mode === 'scan') {
     return (
       <Layout>
-        <div className="slide-up">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-serif text-fridgit-text dark:text-dracula-fg">Scan Barcode</h1>
-            <button onClick={stopScan} className="p-2 rounded-xl hover:bg-fridgit-surfaceAlt dark:hover:bg-dracula-surface transition-colors"><X size={20} /></button>
-          </div>
-          <div id="barcode-reader" className="rounded-xl overflow-hidden bg-black" style={{ minHeight: 300 }}></div>
-          <p className="text-center text-sm text-fridgit-textMuted dark:text-dracula-comment mt-3">Point camera at a barcode</p>
+        <div className="page-stack slide-up">
+          <section className="panel-section mx-auto max-w-3xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h1 className="text-xl font-serif text-fridgit-text dark:text-dracula-fg">Scan Barcode</h1>
+              <button onClick={stopScan} className="rounded-xl p-2 transition-colors hover:bg-fridgit-surfaceAlt dark:hover:bg-dracula-surface"><X size={20} /></button>
+            </div>
+            <div id="barcode-reader" className="overflow-hidden rounded-xl bg-black" style={{ minHeight: 320 }}></div>
+            <p className="mt-3 text-center text-sm text-fridgit-textMuted dark:text-dracula-comment">Point camera at a barcode</p>
+          </section>
         </div>
       </Layout>
     );
@@ -268,34 +281,44 @@ export default function NewItem() {
   if (mode === 'search') {
     return (
       <Layout>
-        <div className="slide-up">
-          <div className="flex items-center gap-3 mb-4">
-            <button onClick={() => setMode('form')} className="p-2 rounded-xl hover:bg-fridgit-surfaceAlt dark:hover:bg-dracula-surface transition-colors"><ArrowLeft size={20} /></button>
-            <h1 className="text-xl font-serif text-fridgit-text dark:text-dracula-fg">Search Products</h1>
-          </div>
-          <div className="flex gap-2 mb-4">
-            <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && searchProducts()}
-              placeholder="Search by name..." className="flex-1 px-3 py-2.5 rounded-xl border border-fridgit-border dark:border-dracula-surface bg-white dark:bg-dracula-surface text-fridgit-text dark:text-dracula-fg focus:border-fridgit-primary dark:focus:border-dracula-green transition" />
-            <button onClick={searchProducts} disabled={searching}
-              className="px-4 py-2.5 rounded-xl bg-fridgit-primary dark:bg-dracula-green text-white dark:text-dracula-bg font-medium disabled:opacity-50">
-              {searching ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {searchResults.map((p, i) => (
-              <button key={i} onClick={() => selectProduct(p)}
-                className="w-full bg-white dark:bg-dracula-surface rounded-xl border border-fridgit-border dark:border-dracula-line p-3 flex items-center gap-3 text-left hover:bg-fridgit-surfaceAlt dark:hover:bg-dracula-highlight transition-colors">
-                {p.image_url ? <img src={p.image_url} alt="" className="w-10 h-10 rounded-lg object-cover" /> : <span className="text-2xl">{p.emoji || '\u{1F4E6}'}</span>}
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-fridgit-text dark:text-dracula-fg text-sm truncate">{p.name}</div>
-                  <div className="text-xs text-fridgit-textMuted dark:text-dracula-comment">{p.category} {hasNutrition(p.calories) ? `- ${r2(p.calories)} kcal` : ''}</div>
-                </div>
+        <div className="page-stack slide-up">
+          <section className="panel-section mx-auto max-w-4xl">
+            <div className="mb-4 flex items-center gap-3">
+              <button onClick={() => setMode('form')} className="rounded-xl p-2 transition-colors hover:bg-fridgit-surfaceAlt dark:hover:bg-dracula-surface"><ArrowLeft size={20} /></button>
+              <h1 className="text-xl font-serif text-fridgit-text dark:text-dracula-fg">Search Products</h1>
+            </div>
+            <div className="mb-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && searchProducts()}
+                placeholder="Search by name..."
+                className="w-full rounded-xl border border-fridgit-border bg-white px-3 py-3 text-fridgit-text transition focus:border-fridgit-primary dark:border-dracula-line dark:bg-dracula-surface dark:text-dracula-fg dark:focus:border-dracula-green"
+              />
+              <button onClick={searchProducts} disabled={searching} className="rounded-xl bg-fridgit-primary px-4 py-3 font-medium text-white disabled:opacity-50 dark:bg-dracula-green dark:text-dracula-bg">
+                {searching ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
               </button>
-            ))}
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {searchResults.map((p, i) => (
+                <button
+                  key={i}
+                  onClick={() => selectProduct(p)}
+                  className="flex w-full items-center gap-3 rounded-xl border border-fridgit-border bg-white p-3 text-left transition-colors hover:bg-fridgit-surfaceAlt dark:border-dracula-line dark:bg-dracula-surface dark:hover:bg-dracula-highlight"
+                >
+                  {p.image_url ? <img src={p.image_url} alt="" className="h-12 w-12 rounded-lg object-cover" /> : <span className="text-2xl">{p.emoji || '\u{1F4E6}'}</span>}
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium text-fridgit-text dark:text-dracula-fg">{p.name}</div>
+                    <div className="text-xs text-fridgit-textMuted dark:text-dracula-comment">{p.category} {hasNutrition(p.calories) ? `- ${r2(p.calories)} kcal` : ''}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
             {searchResults.length === 0 && !searching && searchQuery && (
-              <p className="text-center text-sm text-fridgit-textMuted dark:text-dracula-comment py-8">No results. Try different keywords.</p>
+              <p className="py-8 text-center text-sm text-fridgit-textMuted dark:text-dracula-comment">No results. Try different keywords.</p>
             )}
-          </div>
+          </section>
         </div>
       </Layout>
     );
@@ -303,134 +326,116 @@ export default function NewItem() {
 
   return (
     <Layout>
-      <div className="slide-up">
-        <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => navigate(-1)} className="p-2 rounded-xl hover:bg-fridgit-surfaceAlt dark:hover:bg-dracula-surface transition-colors"><ArrowLeft size={20} className="text-fridgit-text dark:text-dracula-fg" /></button>
-          <h1 className="text-xl font-serif text-fridgit-text dark:text-dracula-fg">Add Item</h1>
-        </div>
-
-        <div className="flex gap-3 mb-4">
-          <button onClick={startScan} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-fridgit-primary dark:border-dracula-green text-fridgit-primary dark:text-dracula-green font-medium hover:bg-fridgit-primaryPale dark:hover:bg-dracula-green/10 transition-colors">
-            <Camera size={20} /> Scan Barcode
-          </button>
-          <button onClick={() => setMode('search')} className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-fridgit-primary dark:border-dracula-green text-fridgit-primary dark:text-dracula-green font-medium hover:bg-fridgit-primaryPale dark:hover:bg-dracula-green/10 transition-colors">
-            <Search size={20} /> Search
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4 max-w-3xl mx-auto">
-          <div className="bg-white dark:bg-dracula-surface rounded-xl border border-fridgit-border dark:border-dracula-line p-4 space-y-3">
-            {form.image_url && (
-              <div className="flex justify-center">
-                <img src={form.image_url} alt="Product" className="w-24 h-24 rounded-2xl object-cover border border-fridgit-border dark:border-dracula-line bg-fridgit-bg dark:bg-dracula-bg" />
-              </div>
-            )}
-
-            <div>
-              <label className="block text-sm font-medium text-fridgit-textMid dark:text-dracula-comment mb-1">Name</label>
-              <input type="text" value={form.name} onChange={e => updateForm('name', e.target.value)} required
-                className="w-full px-3 py-2.5 rounded-xl border border-fridgit-border dark:border-dracula-line bg-fridgit-bg dark:bg-dracula-bg text-fridgit-text dark:text-dracula-fg focus:border-fridgit-primary dark:focus:border-dracula-green transition"
-                placeholder="e.g. Greek Yogurt" />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-fridgit-textMid dark:text-dracula-comment mb-2">Category</label>
-              <div className="grid grid-cols-3 gap-2">
-                {categoryOptions.map(cat => (
-                  <button key={cat.key} type="button" onClick={() => { updateForm('category', cat.key); updateForm('emoji', cat.emoji); }}
-                    className={`p-2.5 rounded-xl border-2 transition-all ${form.category === cat.key ? 'border-fridgit-primary dark:border-dracula-green bg-fridgit-primaryPale dark:bg-dracula-green/10' : 'border-fridgit-border dark:border-dracula-line bg-fridgit-bg dark:bg-dracula-bg hover:border-fridgit-primary/50 dark:hover:border-dracula-green/50'}`}>
-                    <div className="text-lg mb-0.5">{cat.emoji}</div>
-                    <div className="text-xs font-medium text-fridgit-text dark:text-dracula-fg">{cat.label}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="page-stack slide-up">
+        <section className="hero-card">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div className="flex items-center gap-3">
+              <button onClick={() => navigate(-1)} className="rounded-xl p-2 transition-colors hover:bg-fridgit-surfaceAlt dark:hover:bg-dracula-surface"><ArrowLeft size={20} className="text-fridgit-text dark:text-dracula-fg" /></button>
               <div>
-                <label className="block text-sm font-medium text-fridgit-textMid dark:text-dracula-comment mb-1">Quantity</label>
-                <div className="flex items-center gap-2">
-                  <button type="button" onClick={() => updateForm('quantity', Math.max(1, parseInt(form.quantity) - 1 || 1))}
-                    className="w-10 h-10 rounded-xl bg-fridgit-surfaceAlt dark:bg-dracula-highlight text-fridgit-text dark:text-dracula-fg flex items-center justify-center font-bold">-</button>
-                  <input type="number" min="1" value={form.quantity} onChange={e => updateForm('quantity', e.target.value)}
-                    className="h-10 flex-1 text-center px-3 rounded-xl border border-fridgit-border dark:border-dracula-line bg-fridgit-bg dark:bg-dracula-bg text-fridgit-text dark:text-dracula-fg" />
-                  <button type="button" onClick={() => updateForm('quantity', (parseInt(form.quantity) || 0) + 1)}
-                    className="w-10 h-10 rounded-xl bg-fridgit-surfaceAlt dark:bg-dracula-highlight text-fridgit-text dark:text-dracula-fg flex items-center justify-center font-bold">+</button>
+                <h1 className="text-3xl font-serif text-fridgit-text dark:text-dracula-fg sm:text-[2rem]">Add Item</h1>
+                <p className="mt-1 text-sm text-fridgit-textMuted dark:text-dracula-comment">Capture groceries quickly on mobile and fill in details comfortably on desktop.</p>
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:w-[420px]">
+              <button onClick={startScan} className="flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-fridgit-primary py-3 font-medium text-fridgit-primary transition-colors hover:bg-fridgit-primaryPale dark:border-dracula-green dark:text-dracula-green dark:hover:bg-dracula-green/10">
+                <Camera size={20} /> Scan Barcode
+              </button>
+              <button onClick={() => setMode('search')} className="flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-fridgit-primary py-3 font-medium text-fridgit-primary transition-colors hover:bg-fridgit-primaryPale dark:border-dracula-green dark:text-dracula-green dark:hover:bg-dracula-green/10">
+                <Search size={20} /> Search
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <form onSubmit={handleSubmit} className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.85fr)]">
+          <div className="space-y-6">
+            <section className="panel-section space-y-4">
+              {form.image_url && (
+                <div className="flex justify-center lg:justify-start">
+                  <img src={form.image_url} alt="Product" className="h-28 w-28 rounded-2xl border border-fridgit-border bg-fridgit-bg object-cover dark:border-dracula-line dark:bg-dracula-bg" />
+                </div>
+              )}
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-fridgit-textMid dark:text-dracula-comment">Name</label>
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => updateForm('name', e.target.value)}
+                  required
+                  className="w-full rounded-xl border border-fridgit-border bg-fridgit-bg px-3 py-3 text-fridgit-text transition focus:border-fridgit-primary dark:border-dracula-line dark:bg-dracula-bg dark:text-dracula-fg dark:focus:border-dracula-green"
+                  placeholder="e.g. Greek Yogurt"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-fridgit-textMid dark:text-dracula-comment">Category</label>
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 xl:grid-cols-3 2xl:grid-cols-4">
+                  {categoryOptions.map((cat) => (
+                    <button
+                      key={cat.key}
+                      type="button"
+                      onClick={() => {
+                        updateForm('category', cat.key);
+                        updateForm('emoji', cat.emoji);
+                      }}
+                      className={`rounded-xl border-2 p-3 transition-all ${form.category === cat.key ? 'border-fridgit-primary bg-fridgit-primaryPale dark:border-dracula-green dark:bg-dracula-green/10' : 'border-fridgit-border bg-fridgit-bg hover:border-fridgit-primary/50 dark:border-dracula-line dark:bg-dracula-bg dark:hover:border-dracula-green/50'}`}
+                    >
+                      <div className="mb-1 text-lg">{cat.emoji}</div>
+                      <div className="text-xs font-medium text-fridgit-text dark:text-dracula-fg">{cat.label}</div>
+                    </button>
+                  ))}
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-fridgit-textMid dark:text-dracula-comment mb-1">Location</label>
-                <select value={form.location} onChange={e => updateForm('location', e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-fridgit-border dark:border-dracula-line bg-fridgit-bg dark:bg-dracula-bg text-fridgit-text dark:text-dracula-fg capitalize">
-                  {locationOptions.map(loc => <option key={loc} value={loc} className="capitalize">{loc}</option>)}
-                </select>
-              </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-fridgit-textMid dark:text-dracula-comment mb-1">Expiry Date</label>
-              <div className="rounded-2xl border border-fridgit-border dark:border-dracula-line bg-fridgit-bg dark:bg-dracula-bg p-3 shadow-sm">
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-fridgit-textMid dark:text-dracula-comment">Quantity</label>
+                  <div className="flex items-center gap-2">
+                    <button type="button" onClick={() => updateForm('quantity', Math.max(1, parseInt(form.quantity) - 1 || 1))} className="flex h-11 w-11 items-center justify-center rounded-xl bg-fridgit-surfaceAlt font-bold text-fridgit-text dark:bg-dracula-highlight dark:text-dracula-fg">-</button>
+                    <input type="number" min="1" value={form.quantity} onChange={(e) => updateForm('quantity', e.target.value)} className="h-11 flex-1 rounded-xl border border-fridgit-border bg-fridgit-bg px-3 text-center text-fridgit-text dark:border-dracula-line dark:bg-dracula-bg dark:text-dracula-fg" />
+                    <button type="button" onClick={() => updateForm('quantity', (parseInt(form.quantity) || 0) + 1)} className="flex h-11 w-11 items-center justify-center rounded-xl bg-fridgit-surfaceAlt font-bold text-fridgit-text dark:bg-dracula-highlight dark:text-dracula-fg">+</button>
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-fridgit-textMid dark:text-dracula-comment">Location</label>
+                  <select value={form.location} onChange={(e) => updateForm('location', e.target.value)} className="w-full rounded-xl border border-fridgit-border bg-fridgit-bg px-3 py-3 capitalize text-fridgit-text dark:border-dracula-line dark:bg-dracula-bg dark:text-dracula-fg">
+                    {locationOptions.map((loc) => <option key={loc} value={loc} className="capitalize">{loc}</option>)}
+                  </select>
+                </div>
+              </div>
+            </section>
+
+            <section className="panel-section">
+              <label className="mb-3 block text-sm font-medium text-fridgit-textMid dark:text-dracula-comment">Expiry Date</label>
+              <div className="rounded-2xl border border-fridgit-border bg-fridgit-bg p-3 shadow-sm dark:border-dracula-line dark:bg-dracula-bg">
                 <div className="mb-3">
-                  <div className="text-xs font-medium text-fridgit-textMuted dark:text-dracula-comment mb-2">Quick expiry</div>
-                  <div className="flex items-center gap-2 rounded-xl border border-fridgit-border dark:border-dracula-line bg-white/80 dark:bg-dracula-surface px-2 py-2 shadow-inner overflow-hidden">
-                    <div className="relative w-20 shrink-0 rounded-lg bg-fridgit-bg dark:bg-dracula-bg overflow-hidden">
-                      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-3 bg-gradient-to-b from-fridgit-bg dark:from-dracula-bg to-transparent" />
-                      <div className="pointer-events-none absolute inset-x-1 top-1/2 z-10 h-8 -translate-y-1/2 rounded-md border border-fridgit-primary/20 dark:border-dracula-green/25 bg-fridgit-primary/5 dark:bg-dracula-green/10" />
-                      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-3 bg-gradient-to-t from-fridgit-bg dark:from-dracula-bg to-transparent" />
-                      <div
-                        ref={expiryNumberWheelRef}
-                        onScroll={() => handleWheelScroll('number')}
-                        className="overflow-y-auto overflow-x-hidden snap-y snap-mandatory scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden touch-pan-y"
-                        style={{ height: `${WHEEL_VIEWPORT_HEIGHT}px`, paddingTop: `${WHEEL_CENTER_OFFSET}px`, paddingBottom: `${WHEEL_CENTER_OFFSET}px`, WebkitOverflowScrolling: 'touch' }}
-                      >
+                  <div className="mb-2 text-xs font-medium text-fridgit-textMuted dark:text-dracula-comment">Quick expiry</div>
+                  <div className="flex items-center gap-2 overflow-hidden rounded-xl border border-fridgit-border bg-white/80 px-2 py-2 shadow-inner dark:border-dracula-line dark:bg-dracula-surface">
+                    <div className="relative w-20 shrink-0 overflow-hidden rounded-lg bg-fridgit-bg dark:bg-dracula-bg">
+                      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-3 bg-gradient-to-b from-fridgit-bg to-transparent dark:from-dracula-bg" />
+                      <div className="pointer-events-none absolute inset-x-1 top-1/2 z-10 h-8 -translate-y-1/2 rounded-md border border-fridgit-primary/20 bg-fridgit-primary/5 dark:border-dracula-green/25 dark:bg-dracula-green/10" />
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-3 bg-gradient-to-t from-fridgit-bg to-transparent dark:from-dracula-bg" />
+                      <div ref={expiryNumberWheelRef} onScroll={() => handleWheelScroll('number')} className="touch-pan-y overflow-y-auto overflow-x-hidden snap-y snap-mandatory scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" style={{ height: `${WHEEL_VIEWPORT_HEIGHT}px`, paddingTop: `${WHEEL_CENTER_OFFSET}px`, paddingBottom: `${WHEEL_CENTER_OFFSET}px`, WebkitOverflowScrolling: 'touch' }}>
                         {numberWheelOptions.map((option, index) => {
                           const isSelected = option.value === expiryNumber;
                           return (
-                            <div
-                              key={option.key}
-                              className={`flex snap-center items-center justify-center px-2 text-center select-none transition-all ${
-                                isSelected
-                                  ? 'text-xl font-semibold text-fridgit-primary dark:text-dracula-green'
-                                  : 'text-sm text-fridgit-textMuted dark:text-dracula-comment opacity-45'
-                              }`}
-                              style={{ height: `${WHEEL_ROW_HEIGHT}px` }}
-                              onClick={() => {
-                                setExpiryNumber(option.value);
-                                snapWheel(expiryNumberWheelRef, index);
-                              }}
-                            >
+                            <div key={option.key} className={`flex snap-center select-none items-center justify-center px-2 text-center transition-all ${isSelected ? 'text-xl font-semibold text-fridgit-primary dark:text-dracula-green' : 'text-sm text-fridgit-textMuted opacity-45 dark:text-dracula-comment'}`} style={{ height: `${WHEEL_ROW_HEIGHT}px` }} onClick={() => { setExpiryNumber(option.value); snapWheel(expiryNumberWheelRef, index); }}>
                               {option.label}
                             </div>
                           );
                         })}
                       </div>
                     </div>
-                    <div className="relative min-w-0 flex-1 rounded-lg bg-fridgit-bg dark:bg-dracula-bg overflow-hidden">
-                      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-3 bg-gradient-to-b from-fridgit-bg dark:from-dracula-bg to-transparent" />
-                      <div className="pointer-events-none absolute inset-x-1 top-1/2 z-10 h-8 -translate-y-1/2 rounded-md border border-fridgit-primary/20 dark:border-dracula-green/25 bg-fridgit-primary/5 dark:bg-dracula-green/10" />
-                      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-3 bg-gradient-to-t from-fridgit-bg dark:from-dracula-bg to-transparent" />
-                      <div
-                        ref={expiryUnitWheelRef}
-                        onScroll={() => handleWheelScroll('unit')}
-                        className="overflow-y-auto overflow-x-hidden snap-y snap-mandatory scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden touch-pan-y"
-                        style={{ height: `${WHEEL_VIEWPORT_HEIGHT}px`, paddingTop: `${WHEEL_CENTER_OFFSET}px`, paddingBottom: `${WHEEL_CENTER_OFFSET}px`, WebkitOverflowScrolling: 'touch' }}
-                      >
+                    <div className="relative min-w-0 flex-1 overflow-hidden rounded-lg bg-fridgit-bg dark:bg-dracula-bg">
+                      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-3 bg-gradient-to-b from-fridgit-bg to-transparent dark:from-dracula-bg" />
+                      <div className="pointer-events-none absolute inset-x-1 top-1/2 z-10 h-8 -translate-y-1/2 rounded-md border border-fridgit-primary/20 bg-fridgit-primary/5 dark:border-dracula-green/25 dark:bg-dracula-green/10" />
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-3 bg-gradient-to-t from-fridgit-bg to-transparent dark:from-dracula-bg" />
+                      <div ref={expiryUnitWheelRef} onScroll={() => handleWheelScroll('unit')} className="touch-pan-y overflow-y-auto overflow-x-hidden snap-y snap-mandatory scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" style={{ height: `${WHEEL_VIEWPORT_HEIGHT}px`, paddingTop: `${WHEEL_CENTER_OFFSET}px`, paddingBottom: `${WHEEL_CENTER_OFFSET}px`, WebkitOverflowScrolling: 'touch' }}>
                         {unitWheelOptions.map((option, index) => {
                           const isSelected = option.value === expiryUnit;
                           return (
-                            <div
-                              key={option.key}
-                              className={`flex snap-center items-center justify-center px-3 text-center select-none transition-all ${
-                                isSelected
-                                  ? 'text-base font-semibold text-fridgit-primary dark:text-dracula-green'
-                                  : 'text-sm text-fridgit-textMuted dark:text-dracula-comment opacity-45'
-                              }`}
-                              style={{ height: `${WHEEL_ROW_HEIGHT}px` }}
-                              onClick={() => {
-                                setExpiryUnit(option.value);
-                                snapWheel(expiryUnitWheelRef, index);
-                              }}
-                            >
+                            <div key={option.key} className={`flex snap-center select-none items-center justify-center px-2 text-center transition-all ${isSelected ? 'text-base font-semibold text-fridgit-primary dark:text-dracula-green' : 'text-sm text-fridgit-textMuted opacity-45 dark:text-dracula-comment'}`} style={{ height: `${WHEEL_ROW_HEIGHT}px` }} onClick={() => { setExpiryUnit(option.value); snapWheel(expiryUnitWheelRef, index); }}>
                               {option.label}
                             </div>
                           );
@@ -439,51 +444,48 @@ export default function NewItem() {
                     </div>
                   </div>
                 </div>
-                <div className="rounded-xl border border-fridgit-border dark:border-dracula-line bg-white/80 dark:bg-dracula-surface p-3 overflow-hidden">
-                  <div className="text-xs font-medium text-fridgit-textMuted dark:text-dracula-comment mb-2">Or pick an exact date</div>
-                  <input type="date" value={form.expiry_date} onChange={e => updateForm('expiry_date', e.target.value)}
-                    className="block w-full min-w-0 px-3 py-3 rounded-lg border border-fridgit-border dark:border-dracula-line bg-fridgit-bg dark:bg-dracula-bg text-fridgit-text dark:text-dracula-fg focus:border-fridgit-primary dark:focus:border-dracula-green transition shadow-sm" />
+                <div className="overflow-hidden rounded-xl border border-fridgit-border bg-white/80 p-3 dark:border-dracula-line dark:bg-dracula-surface">
+                  <div className="mb-2 text-xs font-medium text-fridgit-textMuted dark:text-dracula-comment">Or pick an exact date</div>
+                  <input type="date" value={form.expiry_date} onChange={(e) => updateForm('expiry_date', e.target.value)} className="block w-full min-w-0 rounded-lg border border-fridgit-border bg-fridgit-bg px-3 py-3 text-fridgit-text shadow-sm transition focus:border-fridgit-primary dark:border-dracula-line dark:bg-dracula-bg dark:text-dracula-fg dark:focus:border-dracula-green" />
                 </div>
               </div>
-            </div>
-
-            <SharePicker
-              shared={form.shared}
-              sharedWith={form.shared_with}
-              currentUserId={user?.id}
-              onChange={({ shared, sharedWith }) => setForm(prev => ({ ...prev, shared, shared_with: sharedWith }))}
-            />
+            </section>
           </div>
 
-          {(hasNutrition(form.calories) || hasNutrition(form.protein) || hasNutrition(form.carbs) || hasNutrition(form.fat)) && (
-            <div className="bg-white dark:bg-dracula-surface rounded-xl border border-fridgit-border dark:border-dracula-line p-4">
-              <h3 className="text-sm font-semibold text-fridgit-textMid dark:text-dracula-comment mb-2">Nutrition ({form.nutrition_basis === 'serving' ? 'per serving' : 'per 100g'})</h3>
-              <div className="grid grid-cols-4 gap-2 text-center">
-                <div className="bg-fridgit-bg dark:bg-dracula-bg rounded-lg p-2">
-                  <div className="text-sm font-bold text-fridgit-text dark:text-dracula-fg">{hasNutrition(form.calories) ? r2(form.calories) : '-'}</div>
-                  <div className="text-[10px] text-fridgit-textMuted dark:text-dracula-comment">kcal</div>
-                </div>
-                <div className="bg-fridgit-bg dark:bg-dracula-bg rounded-lg p-2">
-                  <div className="text-sm font-bold text-fridgit-text dark:text-dracula-fg">{hasNutrition(form.protein) ? r2(form.protein) : '-'}</div>
-                  <div className="text-[10px] text-fridgit-textMuted dark:text-dracula-comment">Protein</div>
-                </div>
-                <div className="bg-fridgit-bg dark:bg-dracula-bg rounded-lg p-2">
-                  <div className="text-sm font-bold text-fridgit-text dark:text-dracula-fg">{hasNutrition(form.carbs) ? r2(form.carbs) : '-'}</div>
-                  <div className="text-[10px] text-fridgit-textMuted dark:text-dracula-comment">Carbs</div>
-                </div>
-                <div className="bg-fridgit-bg dark:bg-dracula-bg rounded-lg p-2">
-                  <div className="text-sm font-bold text-fridgit-text dark:text-dracula-fg">{hasNutrition(form.fat) ? r2(form.fat) : '-'}</div>
-                  <div className="text-[10px] text-fridgit-textMuted dark:text-dracula-comment">Fat</div>
-                </div>
-              </div>
-            </div>
-          )}
+          <div className="space-y-6">
+            <section className="panel-section">
+              <SharePicker shared={form.shared} sharedWith={form.shared_with} currentUserId={user?.id} onChange={({ shared, sharedWith }) => setForm((prev) => ({ ...prev, shared, shared_with: sharedWith }))} />
+            </section>
 
-          <button type="submit" disabled={saving}
-            className="w-full py-3 rounded-xl bg-fridgit-primary dark:bg-dracula-green text-white dark:text-dracula-bg font-semibold hover:bg-fridgit-primaryLight dark:hover:bg-dracula-green/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
-            {saving ? <Loader2 size={20} className="animate-spin" /> : <Package size={20} />}
-            Add to Fridge
-          </button>
+            {(hasNutrition(form.calories) || hasNutrition(form.protein) || hasNutrition(form.carbs) || hasNutrition(form.fat)) && (
+              <section className="panel-section">
+                <h3 className="mb-3 text-sm font-semibold text-fridgit-textMid dark:text-dracula-comment">Nutrition ({form.nutrition_basis === 'serving' ? 'per serving' : 'per 100g'})</h3>
+                <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4 xl:grid-cols-2 2xl:grid-cols-4">
+                  <div className="rounded-lg bg-fridgit-bg p-3 dark:bg-dracula-bg">
+                    <div className="text-base font-bold text-fridgit-text dark:text-dracula-fg">{hasNutrition(form.calories) ? r2(form.calories) : '-'}</div>
+                    <div className="text-[10px] text-fridgit-textMuted dark:text-dracula-comment">kcal</div>
+                  </div>
+                  <div className="rounded-lg bg-fridgit-bg p-3 dark:bg-dracula-bg">
+                    <div className="text-base font-bold text-fridgit-text dark:text-dracula-fg">{hasNutrition(form.protein) ? r2(form.protein) : '-'}</div>
+                    <div className="text-[10px] text-fridgit-textMuted dark:text-dracula-comment">Protein</div>
+                  </div>
+                  <div className="rounded-lg bg-fridgit-bg p-3 dark:bg-dracula-bg">
+                    <div className="text-base font-bold text-fridgit-text dark:text-dracula-fg">{hasNutrition(form.carbs) ? r2(form.carbs) : '-'}</div>
+                    <div className="text-[10px] text-fridgit-textMuted dark:text-dracula-comment">Carbs</div>
+                  </div>
+                  <div className="rounded-lg bg-fridgit-bg p-3 dark:bg-dracula-bg">
+                    <div className="text-base font-bold text-fridgit-text dark:text-dracula-fg">{hasNutrition(form.fat) ? r2(form.fat) : '-'}</div>
+                    <div className="text-[10px] text-fridgit-textMuted dark:text-dracula-comment">Fat</div>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            <button type="submit" disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-xl bg-fridgit-primary py-3 font-semibold text-white transition-colors hover:bg-fridgit-primaryLight disabled:opacity-50 dark:bg-dracula-green dark:text-dracula-bg dark:hover:bg-dracula-green/80">
+              {saving ? <Loader2 size={20} className="animate-spin" /> : <Package size={20} />}
+              Add to Fridge
+            </button>
+          </div>
         </form>
       </div>
     </Layout>
