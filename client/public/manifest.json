@@ -10,10 +10,16 @@
   "theme_color": "#3a7d44",
   "icons": [
     {
+      "src": "/fridgit-icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
       "src": "/fridgit.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
