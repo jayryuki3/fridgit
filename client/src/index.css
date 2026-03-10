@@ -100,10 +100,37 @@ html.dark ::selection {
 
   .desktop-modal {
     @apply fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-6;
+    touch-action: none;           /* prevent background page scroll on iOS */
+    overscroll-behavior: contain;
   }
 
   .desktop-modal-card {
-    @apply relative w-full max-w-lg rounded-t-[36px] bg-white/95 p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] backdrop-blur-2xl dark:bg-dracula-currentLine/95 sm:max-w-2xl sm:rounded-[36px] sm:p-8 lg:max-w-4xl border border-white/30 dark:border-dracula-line/30 transition-all;
+    @apply relative w-full max-w-lg rounded-t-[36px] bg-white/95 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] backdrop-blur-2xl dark:bg-dracula-currentLine/95 sm:max-w-2xl sm:rounded-[36px] lg:max-w-4xl border border-white/30 dark:border-dracula-line/30 transition-all;
+    display: flex;
+    flex-direction: column;
+    /* Mobile: leave 48px at top so you can see the page behind & tap to close */
+    max-height: calc(100% - 48px);
+    max-height: calc(100dvh - 48px);
+    padding: 1.5rem 1.5rem 0;     /* no bottom padding on card — scroll body handles it */
+    overflow: hidden;              /* card itself never scrolls */
+  }
+
+  @media (min-width: 640px) {
+    .desktop-modal-card {
+      max-height: 90vh;
+      max-height: 90dvh;
+      padding: 2rem 2rem 0;
+    }
+  }
+
+  .modal-scroll-body {
+    flex: 1 1 0%;
+    min-height: 0;                 /* let flex child shrink below content size */
+    overflow-y: auto;
+    overflow-x: hidden;            /* prevent horizontal drag */
+    overscroll-behavior: contain;  /* don't chain-scroll to page behind */
+    -webkit-overflow-scrolling: touch;
+    /* bottom padding: safe area OR 1.5rem, whichever is bigger */
     padding-bottom: max(env(safe-area-inset-bottom, 0px), 1.5rem);
   }
 
