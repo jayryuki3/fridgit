@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { X, Save, Loader2, Trash2, ShoppingCart } from 'lucide-react';
 import SharePicker from './SharePicker.jsx';
 import { locationOptions } from '../utils/constants.js';
@@ -15,6 +16,25 @@ export default function ItemDetailModal({
   onAddToShoppingList,
   onEditFormChange,
 }) {
+  // Lock body scroll while modal is open — prevents background page from moving
+  useEffect(() => {
+    if (!selected) return;
+    const scrollY = window.scrollY;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.overflow = '';
+      window.scrollTo(0, scrollY);
+    };
+  }, [selected]);
+
   if (!selected) return null;
 
   const handleFieldChange = (field, value) => {
@@ -22,18 +42,11 @@ export default function ItemDetailModal({
   };
 
   return (
-    <div
-      className="desktop-modal"
-      onClick={onClose}
-      /* Prevent ANY touch on the backdrop from scrolling the page behind */
-      onTouchMove={(e) => e.preventDefault()}
-    >
+    <div className="desktop-modal" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40 dark:bg-black/60" />
       <div
         className="desktop-modal-card slide-up"
         onClick={(e) => e.stopPropagation()}
-        /* Stop the backdrop's touchmove preventDefault from applying inside the card */
-        onTouchMove={(e) => e.stopPropagation()}
       >
         {/* Fixed header */}
         <div className="mb-4 flex shrink-0 items-center justify-between">
@@ -48,7 +61,7 @@ export default function ItemDetailModal({
           </button>
         </div>
 
-        {/* Scrollable body — this is the ONLY element that scrolls */}
+        {/* Scrollable body */}
         <div className="modal-scroll-body">
           <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)] lg:items-start">
             {/* Image / emoji */}
