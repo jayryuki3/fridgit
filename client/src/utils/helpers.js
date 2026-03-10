@@ -1,4 +1,4 @@
-// ── Shared helper functions ───────────────────────────────────────
+// ── Shared helper functions ─────────────────────────────────────────
 // Pure utility functions used across multiple pages / components.
 
 /**
