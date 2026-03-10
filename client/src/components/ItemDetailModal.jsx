@@ -1,17 +1,7 @@
 import { X, Save, Loader2, Trash2, ShoppingCart } from 'lucide-react';
 import SharePicker from './SharePicker.jsx';
-
-function r2(val) {
-  const n = parseFloat(val);
-  if (val == null || val === '' || isNaN(n)) return '-';
-  return String(Math.round(n * 100) / 100);
-}
-
-function hasNutrition(v) {
-  return v != null && v !== '' && v !== false;
-}
-
-const locationOptions = ['fridge', 'freezer', 'pantry', 'counter'];
+import { locationOptions } from '../utils/constants.js';
+import { r2, hasNutrition } from '../utils/helpers.js';
 
 export default function ItemDetailModal({
   selected,
