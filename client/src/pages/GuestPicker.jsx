@@ -1,10 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
-import { UserPlus, Loader2, ChefHat } from 'lucide-react';
+import { UserPlus, Loader2, Refrigerator } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../services/api.js';
-import { COLORS, getInitials } from '../utils/constants.js';
+
+const COLORS = [
+  'bg-fridgit-primary', 'bg-fridgit-accent', 'bg-fridgit-danger',
+  'bg-blue-500', 'bg-purple-500', 'bg-pink-500', 'bg-teal-500', 'bg-orange-500',
+];
+
+function getInitials(name) {
+  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
 
 export default function GuestPicker() {
   const [users, setUsers] = useState([]);
@@ -60,7 +68,7 @@ export default function GuestPicker() {
       <div className="w-full max-w-sm slide-up">
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-fridgit-primaryPale dark:bg-dracula-currentLine rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <ChefHat size={32} className="text-fridgit-primary dark:text-dracula-green" />
+            <Refrigerator size={32} className="text-fridgit-primary dark:text-dracula-green" />
           </div>
           <h1 className="text-3xl font-serif text-fridgit-text dark:text-dracula-fg">Fridgit</h1>
           <p className="text-fridgit-textMuted dark:text-dracula-comment mt-1">Who's using the fridge?</p>
