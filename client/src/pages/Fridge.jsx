@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout.jsx';
-import { Search, Plus, Trash2, X, Save, Loader2 } from 'lucide-react';
+import { Search, Plus, Trash2, X, Save, Loader2, ShoppingCart } from 'lucide-react';
 import api from '../services/api.js';
 import toast from 'react-hot-toast';
 import { useAuth } from '../hooks/useAuth.jsx';
@@ -107,6 +107,15 @@ export default function FridgePage() {
       toast.error('Failed to update');
     }
     setSaving(false);
+  };
+
+  const addToShoppingList = async (item) => {
+    try {
+      await api.post('/shopping-list', { item_name: item.name });
+      toast.success(`${item.name} added to shopping list`);
+    } catch {
+      toast.error('Failed to add to shopping list');
+    }
   };
 
   const filtered = items.filter((item) => {
@@ -305,22 +314,31 @@ export default function FridgePage() {
                 </div>
 
                 <div className="rounded-2xl border border-fridgit-border bg-fridgit-bg p-4 dark:border-dracula-line dark:bg-dracula-bg">
-                  <SharePicker 
-                    shared={editForm.shared} 
-                    sharedWith={editForm.shared_with || []} 
-                    currentUserId={user?.id} 
-                    onChange={({ shared, sharedWith }) => setEditForm((prev) => ({ ...prev, shared, shared_with: sharedWith }))} 
+                  <SharePicker
+                    shared={editForm.shared}
+                    sharedWith={editForm.shared_with || []}
+                    currentUserId={user?.id}
+                    onChange={({ shared, sharedWith }) => setEditForm((prev) => ({ ...prev, shared, shared_with: sharedWith }))}
                   />
                 </div>
 
-                <button
-                  onClick={saveDetail}
-                  disabled={saving}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-fridgit-primary py-3 font-semibold text-white transition-colors hover:bg-fridgit-primaryLight disabled:opacity-50 dark:bg-dracula-green dark:text-dracula-bg dark:hover:bg-dracula-green/80"
-                >
-                  {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-                  Save Changes
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => addToShoppingList(selected)}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-fridgit-primary bg-fridgit-primaryPale py-3 font-semibold text-fridgit-primary transition-colors hover:bg-fridgit-primary hover:text-white dark:border-dracula-purple dark:bg-dracula-purple/20 dark:text-dracula-purple dark:hover:bg-dracula-purple dark:hover:text-dracula-bg"
+                  >
+                    <ShoppingCart size={18} />
+                    Add to List
+                  </button>
+                  <button
+                    onClick={saveDetail}
+                    disabled={saving}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-fridgit-primary py-3 font-semibold text-white transition-colors hover:bg-fridgit-primaryLight disabled:opacity-50 dark:bg-dracula-green dark:text-dracula-bg dark:hover:bg-dracula-green/80"
+                  >
+                    {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                    Save Changes
+                  </button>
+                </div>
               </div>
             </div>
           </div>
