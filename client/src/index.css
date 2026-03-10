@@ -4,6 +4,13 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --pt-safe: max(1rem, env(safe-area-inset-top, 0px));
+  --pb-safe: max(1rem, env(safe-area-inset-bottom, 0px));
+  --pl-safe: max(1rem, env(safe-area-inset-left, 0px));
+  --pr-safe: max(1rem, env(safe-area-inset-right, 0px));
+}
+
 html {
   min-height: 100%;
   overscroll-behavior-y: none;
@@ -30,9 +37,9 @@ body {
 
 @media (display-mode: standalone) {
   body {
-    padding-top: env(safe-area-inset-top);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
+    padding-top: var(--pt-safe);
+    padding-left: var(--pl-safe);
+    padding-right: var(--pr-safe);
   }
 }
 
