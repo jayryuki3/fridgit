@@ -1,0 +1,19 @@
+{
+  "name": "Fridgit",
+  "short_name": "Fridgit",
+  "description": "Smart kitchen inventory manager",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8f6f1",
+  "theme_color": "#3a7d44",
+  "icons": [
+    {
+      "src": "/fridgit.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
