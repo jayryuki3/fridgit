@@ -1,15 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Users, Globe, Loader2, UserPlus, Check, X } from 'lucide-react';
 import api from '../services/api.js';
-
-const COLORS = [
-  'bg-fridgit-primary', 'bg-fridgit-accent', 'bg-fridgit-danger',
-  'bg-blue-500', 'bg-purple-500', 'bg-pink-500', 'bg-teal-500', 'bg-orange-500',
-];
-
-function getInitials(name) {
-  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-}
+import { COLORS, getInitials } from '../utils/constants.js';
 
 export default function SharePicker({ shared, sharedWith, currentUserId, onChange }) {
   const [users, setUsers] = useState([]);
