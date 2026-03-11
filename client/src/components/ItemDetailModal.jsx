@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
-import { X, Save, Loader2, Trash2, ShoppingCart } from 'lucide-react';
-import SharePicker from './SharePicker.jsx';
-import { locationOptions } from '../utils/constants.js';
-import { r2, hasNutrition } from '../utils/helpers.js';
+import { useEffect } from "react";
+import { X, Save, Loader2, Trash2, ShoppingCart } from "lucide-react";
+import SharePicker from "./SharePicker.jsx";
+import { locationOptions } from "../utils/constants.js";
+import { r2, hasNutrition } from "../utils/helpers.js";
 
 export default function ItemDetailModal({
   selected,
@@ -20,17 +20,17 @@ export default function ItemDetailModal({
   useEffect(() => {
     if (!selected) return;
     const scrollY = window.scrollY;
-    document.body.style.position = 'fixed';
+    document.body.style.position = "fixed";
     document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = '0';
-    document.body.style.right = '0';
-    document.body.style.overflow = 'hidden';
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.left = '';
-      document.body.style.right = '';
-      document.body.style.overflow = '';
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.overflow = "";
       window.scrollTo(0, scrollY);
     };
   }, [selected]);
@@ -40,6 +40,10 @@ export default function ItemDetailModal({
   const handleFieldChange = (field, value) => {
     onEditFormChange((prev) => ({ ...prev, [field]: value }));
   };
+
+  // Determine nutrition label based on nutrition_basis
+  const isPerServing = selected.nutrition_basis === "serving";
+  const nutritionLabel = isPerServing ? "per serving" : "per 100g";
 
   return (
     <div className="desktop-modal" onClick={onClose}>
@@ -57,7 +61,10 @@ export default function ItemDetailModal({
             onClick={onClose}
             className="rounded-lg p-1.5 transition-colors hover:bg-fridgit-surfaceAlt dark:hover:bg-dracula-surface"
           >
-            <X size={20} className="text-fridgit-textMuted dark:text-dracula-comment" />
+            <X
+              size={20}
+              className="text-fridgit-textMuted dark:text-dracula-comment"
+            />
           </button>
         </div>
 
@@ -74,7 +81,9 @@ export default function ItemDetailModal({
                 />
               ) : (
                 <div className="flex h-28 w-28 items-center justify-center rounded-2xl bg-fridgit-surfaceAlt dark:bg-dracula-surface sm:h-40 sm:w-40 lg:h-52 lg:w-52">
-                  <span className="text-5xl sm:text-7xl">{selected.emoji || '\u{1F4E6}'}</span>
+                  <span className="text-5xl sm:text-7xl">
+                    {selected.emoji || "\u{1F4E6}"}
+                  </span>
                 </div>
               )}
             </div>
@@ -87,7 +96,7 @@ export default function ItemDetailModal({
                 hasNutrition(selected.fat)) && (
                 <div className="rounded-2xl bg-fridgit-bg p-3 dark:bg-dracula-bg">
                   <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-fridgit-textMuted dark:text-dracula-comment">
-                    Nutrition (per 100g)
+                    Nutrition ({nutritionLabel})
                   </h3>
                   <div className="grid grid-cols-4 gap-2 text-center">
                     <div>
@@ -144,7 +153,9 @@ export default function ItemDetailModal({
                   </label>
                   <select
                     value={editForm.location}
-                    onChange={(e) => handleFieldChange('location', e.target.value)}
+                    onChange={(e) =>
+                      handleFieldChange("location", e.target.value)
+                    }
                     className="w-full rounded-xl border border-fridgit-border bg-fridgit-bg px-3 py-2 capitalize text-fridgit-text dark:border-dracula-line dark:bg-dracula-bg dark:text-dracula-fg"
                   >
                     {locationOptions.map((loc) => (
@@ -161,7 +172,9 @@ export default function ItemDetailModal({
                   <input
                     type="date"
                     value={editForm.expiry_date}
-                    onChange={(e) => handleFieldChange('expiry_date', e.target.value)}
+                    onChange={(e) =>
+                      handleFieldChange("expiry_date", e.target.value)
+                    }
                     className="w-full rounded-xl border border-fridgit-border bg-fridgit-bg px-3 py-2 text-fridgit-text transition focus:border-fridgit-primary dark:border-dracula-line dark:bg-dracula-bg dark:text-dracula-fg dark:focus:border-dracula-green"
                   />
                 </div>
