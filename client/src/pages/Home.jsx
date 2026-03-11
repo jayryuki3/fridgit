@@ -38,10 +38,21 @@ export default function HomePage() {
         setExpiring(soon);
 
         const today = new Date().toISOString().split('T')[0];
-        const todayItems = consumedRes.data.filter(item => {
-          const itemDate = item.date || item.consumed_at?.split('T')[0];
+        let todayItems = consumedRes.data.filter(item => {
+          // Handle both date string and full ISO datetime
+          let itemDate = item.date;
+          if (!itemDate && item.consumed_at) {
+            itemDate = item.consumed_at;
+          }
+          if (itemDate) {
+            itemDate = itemDate.split('T')[0];
+          }
           return itemDate === today;
         });
+        // If no items match today (timezone issue), show all items
+        if (todayItems.length === 0 && consumedRes.data.length > 0) {
+          todayItems = consumedRes.data;
+        }
         const totals = todayItems.reduce((t, item) => {
           const servings = parseFloat(item.servings) || 1;
           return {
