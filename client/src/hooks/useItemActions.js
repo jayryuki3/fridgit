@@ -70,18 +70,10 @@ export default function useItemActions({ items, setItems, expiring, setExpiring 
   const consumeItem = async (id, e) => {
     if (e) e.stopPropagation();
     try {
-      const res = await api.post(`/items/${id}/consume`, { quantity: 1 });
-      if (res.data.removed) {
-        removeItem(id);
-        if (selected?.id === id) setSelected(null);
-      } else {
-        replaceItem(id, res.data.item);
-        if (selected?.id === id) {
-          setSelected(res.data.item);
-          setEditForm((prev) => ({ ...prev, quantity: res.data.item.quantity }));
-        }
-      }
-      toast.success('Item consumed!');
+      const today = new Date().toISOString().split('T')[0];
+      const res = await api.post(`/items/${id}/consume`, { servings: 1, date: today });
+      const nutrition = res.data.nutrition;
+      toast.success(`Consumed! +${nutrition.calories} kcal`);
     } catch {
       toast.error('Failed to consume');
     }

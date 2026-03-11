@@ -221,11 +221,11 @@ export default function ItemDetailModal({
                   onClick={(e) => onConsume(selected.id, e)}
                   className="rounded-xl bg-fridgit-accentPale px-3 py-2.5 font-semibold text-fridgit-accent transition-colors hover:bg-fridgit-accent hover:text-white dark:bg-dracula-orange/20 dark:text-dracula-orange dark:hover:bg-dracula-orange dark:hover:text-dracula-bg"
                 >
-                  Use
+                  Consume
                 </button>
                 <button
                   onClick={(e) => onDelete(selected.id, e)}
-                  className="rounded-xl bg-fridgit-dangerPale px-3 py-2.5 text-fridgit-danger transition-colors hover:bg-fridgit-danger hover:text-white dark:bg-dracula-red/20 dark:text-dracula-red dark:hover:bg-dracula-red dark:hover:text-dracula-bg"
+                  className="rounded-xl bg-fridgit-surfaceAlt px-3 py-2.5 text-fridgit-textMuted transition-colors hover:bg-fridgit-dangerPale hover:text-fridgit-danger dark:bg-dracula-selection/30 dark:text-dracula-comment dark:hover:bg-dracula-red/20 dark:hover:text-dracula-red"
                 >
                   <Trash2 size={18} />
                 </button>

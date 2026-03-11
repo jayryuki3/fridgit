@@ -11,6 +11,7 @@ import Register from './pages/Register.jsx';
 import GuestPicker from './pages/GuestPicker.jsx';
 import HomePage from './pages/Home.jsx';
 import FridgePage from './pages/Fridge.jsx';
+import NutritionPage from './pages/Nutrition.jsx';
 import NewItem from './pages/NewItem.jsx';
 import ShoppingList from './pages/ShoppingList.jsx';
 import RecipesPage from './pages/Recipes.jsx';
@@ -66,6 +67,7 @@ function AppRoutes() {
         )}
         <Route path="/home" element={<ProtectedRoute secureMode={secureMode}><HomePage /></ProtectedRoute>} />
         <Route path="/fridge" element={<ProtectedRoute secureMode={secureMode}><FridgePage /></ProtectedRoute>} />
+        <Route path="/nutrition" element={<ProtectedRoute secureMode={secureMode}><NutritionPage /></ProtectedRoute>} />
         <Route path="/new-item" element={<ProtectedRoute secureMode={secureMode}><NewItem /></ProtectedRoute>} />
         <Route path="/shopping" element={<ProtectedRoute secureMode={secureMode}><ShoppingList /></ProtectedRoute>} />
         <Route path="/recipes" element={<ProtectedRoute secureMode={secureMode}><RecipesPage /></ProtectedRoute>} />

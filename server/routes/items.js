@@ -80,23 +80,32 @@ router.delete('/:id', async (req, res) => {
 });
 
 router.post('/:id/consume', async (req, res) => {
-  const { quantity = 1 } = req.body;
+  const { servings = 1, date } = req.body;
   try {
     const uid = Number(req.user.userId);
     const item = await db.query('SELECT * FROM items WHERE id = $1 AND (owner_id = $2 OR shared = true OR shared_with @> $3::jsonb)', [req.params.id, uid, JSON.stringify([uid])]);
     if (item.rows.length === 0) return res.status(404).json({ error: 'Item not found' });
 
     const currentItem = item.rows[0];
-    if (currentItem.quantity <= quantity) {
-      await db.query('DELETE FROM items WHERE id = $1', [req.params.id]);
-      res.json({ message: 'Item consumed and removed', removed: true, item: currentItem });
-    } else {
-      const result = await db.query(
-        'UPDATE items SET quantity = quantity - $1 WHERE id = $2 RETURNING *',
-        [quantity, req.params.id]
-      );
-      res.json({ message: 'Item partially consumed', removed: false, item: result.rows[0] });
-    }
+    const calories = parseFloat(currentItem.calories) || 0;
+    const protein = parseFloat(currentItem.protein) || 0;
+    const carbs = parseFloat(currentItem.carbs) || 0;
+    const fat = parseFloat(currentItem.fat) || 0;
+
+    const consumeDate = date || new Date().toISOString().split('T')[0];
+
+    const mealResult = await db.query(
+      `INSERT INTO meals (user_id, name, date, meal_type, calories, item_id, servings, consumed_at)
+       VALUES ($1, $2, $3, 'consumed', $4, $5, $6, CURRENT_TIMESTAMP) RETURNING *`,
+      [uid, currentItem.name, consumeDate, Math.round(calories * servings), req.params.id, servings]
+    );
+
+    res.json({ 
+      message: 'Item consumed', 
+      consumed: true, 
+      meal: mealResult.rows[0],
+      nutrition: { calories: calories * servings, protein: protein * servings, carbs: carbs * servings, fat: fat * servings }
+    });
   } catch (error) {
     console.error('Consume error:', error);
     res.status(500).json({ error: 'Server error' });
